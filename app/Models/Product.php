@@ -3,17 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 
-class User extends Authenticatable
+class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['role_id', 'name', 'email', 'password'];
+    protected $fillable = ['name', 'description', 'price', 'stock'];
 
-    public function role()
+    public function stocks()
     {
-        return $this->belongsTo(Role::class);
+        return $this->hasMany(Stock::class);
     }
 
     public function productions()
