@@ -10,88 +10,91 @@ class RoleController extends Controller
 {
     public function __construct()
     {
-        // semua method butuh auth
         $this->middleware('auth');
     }
 
-    /**
-     * Display a listing of the roles.
-     */
+    // list semua role
     public function index()
     {
         $roles = Role::orderBy('name')->get();
-        // backend-only: return json or you can return view later
-        return response()->json(['data' => $roles], 200);
+        return view('roles.index', compact('roles'));
     }
 
-    /**
-     * Store a newly created role in storage.
-     */
+    // tampilkan form create
+    public function create()
+    {
+        // hanya Owner boleh create
+        if (! auth()->user()->hasRole('Owner')) {
+            abort(403);
+        }
+
+        return view('roles.create');
+    }
+
+    // simpan role baru
     public function store(Request $request)
     {
-        // owner-only
-        $user = $request->user();
-        if (! $user || ! $user->hasRole('Owner')) {
-            return response()->json(['message' => 'Forbidden'], 403);
+        if (! auth()->user()->hasRole('Owner')) {
+            abort(403);
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100', 'unique:roles,name'],
-            'description' => ['nullable', 'string'],
+            'name' => 'required|string|max:100|unique:roles,name',
+            'description' => 'nullable|string',
         ]);
 
-        $role = Role::create($validated);
+        Role::create($validated);
 
-        return response()->json(['message' => 'Role created', 'data' => $role], 201);
+        return redirect()->route('roles.index')->with('success', 'Role berhasil dibuat.');
     }
 
-    /**
-     * Display the specified role.
-     */
+    // tampilkan detail role
     public function show(Role $role)
     {
-        return response()->json(['data' => $role], 200);
+        return view('roles.show', compact('role'));
     }
 
-    /**
-     * Update the specified role in storage.
-     */
+    // form edit role
+    public function edit(Role $role)
+    {
+        if (! auth()->user()->hasRole('Owner')) {
+            abort(403);
+        }
+
+        return view('roles.edit', compact('role'));
+    }
+
+    // update role
     public function update(Request $request, Role $role)
     {
-        // owner-only
-        $user = $request->user();
-        if (! $user || ! $user->hasRole('Owner')) {
-            return response()->json(['message' => 'Forbidden'], 403);
+        if (! auth()->user()->hasRole('Owner')) {
+            abort(403);
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100', Rule::unique('roles', 'name')->ignore($role->id)],
-            'description' => ['nullable', 'string'],
+            'name' => ['required','string','max:100', Rule::unique('roles','name')->ignore($role->id)],
+            'description' => 'nullable|string',
         ]);
 
         $role->update($validated);
 
-        return response()->json(['message' => 'Role updated', 'data' => $role], 200);
+        return redirect()->route('roles.index')->with('success', 'Role berhasil diupdate.');
     }
 
-    /**
-     * Remove the specified role from storage.
-     */
-    public function destroy(Request $request, Role $role)
+    // hapus role
+    public function destroy(Role $role)
     {
-        // owner-only
-        $user = $request->user();
-        if (! $user || ! $user->hasRole('Owner')) {
-            return response()->json(['message' => 'Forbidden'], 403);
+        if (! auth()->user()->hasRole('Owner')) {
+            abort(403);
         }
 
-        // optional safety: prevent deleting Owner role itself if users exist
+        // safety: jangan hapus Owner saat masih ada user dengan role Owner
         if ($role->name === 'Owner' && $role->users()->count() > 0) {
-            return response()->json(['message' => 'Cannot delete Owner role while users exist with this role'], 400);
+            return redirect()->route('roles.index')->with('error', 'Tidak dapat menghapus role Owner yang masih memiliki user.');
         }
 
         $role->delete();
 
-        return response()->json(['message' => 'Role deleted'], 200);
+        return redirect()->route('roles.index')->with('success', 'Role berhasil dihapus.');
     }
 }
