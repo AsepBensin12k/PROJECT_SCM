@@ -7,7 +7,7 @@
                 <i class="fas fa-crown text-purple-600"></i>
                 <span class="text-sm font-semibold text-purple-900">Owner Access</span>
             </div>
-            <p class="text-xs text-purple-600 mt-1">Read-Only Mode</p>
+            <p class="text-xs text-purple-600 mt-1">Full Management</p>
         </div>
 
         <ul class="space-y-2">
@@ -22,9 +22,17 @@
                 </a>
             </li>
 
-            <!-- Divider -->
-            <li class="pt-4 pb-2">
-                <span class="text-xs font-semibold text-gray-400 uppercase px-3">Inventory</span>
+            <!-- Suppliers - Full Access -->
+            <li>
+                <a href="{{ route('owner.suppliers') }}"
+                    class="flex items-center p-3 text-gray-700 {{ request()->routeIs('owner.suppliers*') ? 'bg-purple-50 border-l-4 border-purple-600' : 'hover:bg-gray-100' }} rounded-lg transition-all duration-200">
+                    <i
+                        class="fas fa-truck-loading mr-3 {{ request()->routeIs('owner.suppliers*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                    <span
+                        class="{{ request()->routeIs('owner.suppliers*') ? 'font-semibold text-purple-900' : '' }}">Kelola
+                        Supplier</span>
+                    <i class="fas fa-edit ml-auto text-xs text-purple-400"></i>
+                </a>
             </li>
 
             <!-- Bahan Baku -->
@@ -36,7 +44,7 @@
                     <span
                         class="{{ request()->routeIs('owner.materials*') ? 'font-semibold text-purple-900' : '' }}">Bahan
                         Baku</span>
-                    <i class="fas fa-eye ml-auto text-xs text-gray-400"></i>
+
                 </a>
             </li>
 
@@ -49,13 +57,8 @@
                     <span
                         class="{{ request()->routeIs('owner.products*') ? 'font-semibold text-purple-900' : '' }}">Produk
                         Jadi</span>
-                    <i class="fas fa-eye ml-auto text-xs text-gray-400"></i>
+                    
                 </a>
-            </li>
-
-            <!-- Divider -->
-            <li class="pt-4 pb-2">
-                <span class="text-xs font-semibold text-gray-400 uppercase px-3">Operations</span>
             </li>
 
             <!-- Produksi -->
@@ -66,7 +69,7 @@
                         class="fas fa-industry mr-3 {{ request()->routeIs('owner.productions*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
                     <span
                         class="{{ request()->routeIs('owner.productions*') ? 'font-semibold text-purple-900' : '' }}">Produksi</span>
-                    <i class="fas fa-eye ml-auto text-xs text-gray-400"></i>
+
                 </a>
             </li>
 
@@ -78,13 +81,7 @@
                         class="fas fa-truck mr-3 {{ request()->routeIs('owner.distributions*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
                     <span
                         class="{{ request()->routeIs('owner.distributions*') ? 'font-semibold text-purple-900' : '' }}">Distribusi</span>
-                    <i class="fas fa-eye ml-auto text-xs text-gray-400"></i>
                 </a>
-            </li>
-
-            <!-- Divider -->
-            <li class="pt-4 pb-2">
-                <span class="text-xs font-semibold text-gray-400 uppercase px-3">Reports & Analysis</span>
             </li>
 
             <!-- Forecasting -->
@@ -95,7 +92,6 @@
                         class="fas fa-chart-line mr-3 {{ request()->routeIs('owner.forecasts*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
                     <span
                         class="{{ request()->routeIs('owner.forecasts*') ? 'font-semibold text-purple-900' : '' }}">Forecasting</span>
-                    <i class="fas fa-eye ml-auto text-xs text-gray-400"></i>
                 </a>
             </li>
 
@@ -107,13 +103,7 @@
                         class="fas fa-file-alt mr-3 {{ request()->routeIs('owner.reports*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
                     <span
                         class="{{ request()->routeIs('owner.reports*') ? 'font-semibold text-purple-900' : '' }}">Laporan</span>
-                    <i class="fas fa-eye ml-auto text-xs text-gray-400"></i>
                 </a>
-            </li>
-
-            <!-- Divider -->
-            <li class="pt-4 pb-2">
-                <span class="text-xs font-semibold text-gray-400 uppercase px-3">Account</span>
             </li>
 
             <!-- Profile -->
@@ -127,7 +117,7 @@
                 </a>
             </li>
 
-            <!-- Logout -->
+            {{-- <!-- Logout -->
             <li>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -137,7 +127,7 @@
                         <span class="text-red-600">Logout</span>
                     </button>
                 </form>
-            </li>
+            </li> --}}
         </ul>
 
         <!-- Info Box -->
@@ -145,8 +135,8 @@
             <div class="flex items-start space-x-2">
                 <i class="fas fa-info-circle text-purple-600 mt-0.5"></i>
                 <div>
-                    <p class="text-xs text-purple-900 font-medium">View Only Access</p>
-                    <p class="text-xs text-purple-600 mt-1">Anda dapat melihat semua data tanpa melakukan perubahan.</p>
+                    <p class="text-xs text-purple-900 font-medium">Access Level</p>
+                    <p class="text-xs text-purple-600 mt-1">Full access untuk Supplier. View-only untuk operasional.</p>
                 </div>
             </div>
         </div>

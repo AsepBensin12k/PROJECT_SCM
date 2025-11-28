@@ -16,10 +16,14 @@ return new class extends Migration
             $table->string('name');
             $table->string('origin')->nullable();
             $table->string('contact')->nullable();
+            $table->enum('status', ['aktif', 'non-aktif'])->default('aktif');
             $table->timestamps();
         });
     }
 
+    /**
+     * Run the down method.
+     */
     public function down(): void
     {
         Schema::dropIfExists('suppliers');

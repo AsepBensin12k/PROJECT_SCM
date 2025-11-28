@@ -49,7 +49,7 @@
     <!-- Sidebar & Main Content -->
     <div class="flex">
         <!-- Sidebar -->
-        @include('components.sidebar')
+        @include('components.koordinator-sidebar')
 
         <!-- Main Content -->
         <div class="flex-1 p-8 ml-64">

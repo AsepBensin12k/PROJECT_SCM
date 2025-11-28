@@ -26,7 +26,7 @@ use App\Http\Controllers\{
 */
 
 Route::get('/', function () {
-    return view('auth/login');
+    return view('auth.login');
 });
 
 /*
@@ -45,11 +45,7 @@ Route::post('/logout', function (Illuminate\Http\Request $request) {
     return redirect('/');
 })->name('logout');
 
-/*
-|--------------------------------------------------------------------------
-| Koordinator Routes - Full CRUD Access
-|--------------------------------------------------------------------------
-*/
+
 
 Route::middleware(['auth'])->prefix('koordinator')->group(function () {
     
@@ -94,65 +90,64 @@ Route::middleware(['auth'])->prefix('koordinator')->group(function () {
     Route::delete('/distributions/{distribution}', [KoordinatorController::class, 'destroyDistribution'])->name('koordinator.distributions.destroy');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Owner Routes - Read Only Access
-|--------------------------------------------------------------------------
-*/
 
-Route::middleware(['auth'])->prefix('owner')->group(function () {
+
+Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () {
     
     // Dashboard
-    Route::get('/dashboard', [OwnerController::class, 'index'])->name('owner.dashboard');
-    
-    // Materials - View Only
-    Route::get('/materials', [OwnerController::class, 'materials'])->name('owner.materials');
-    
-    // Products - View Only
-    Route::get('/products', [OwnerController::class, 'products'])->name('owner.products');
-    
-    // Productions - View Only
-    Route::get('/productions', [OwnerController::class, 'productions'])->name('owner.productions');
-    
-    // Distributions - View Only
-    Route::get('/distributions', [OwnerController::class, 'distributions'])->name('owner.distributions');
-    
-    // Forecasts - View Only
-    Route::get('/forecasts', [OwnerController::class, 'forecasts'])->name('owner.forecasts');
-    
-    // Reports - View Only
-    Route::get('/reports', [OwnerController::class, 'reports'])->name('owner.reports');
-    
-    // Profile
-    Route::get('/profile', [OwnerController::class, 'profile'])->name('owner.profile');
-    Route::get('/profile/edit', [OwnerController::class, 'editProfile'])->name('owner.profile.edit');
-    Route::put('/profile', [OwnerController::class, 'updateProfile'])->name('owner.profile.update');
+    Route::get('/dashboard', [OwnerController::class, 'index'])->name('dashboard');
+
+    // ==========================================
+    // Supplier Management Routes - FULL ACCESS
+    // ==========================================
+    Route::get('/suppliers', [OwnerController::class, 'suppliers'])->name('suppliers');
+    Route::get('/suppliers/create', [OwnerController::class, 'createSupplier'])->name('suppliers.create');
+    Route::post('/suppliers/store', [OwnerController::class, 'storeSupplier'])->name('suppliers.store');
+    Route::get('/suppliers/{id}/edit', [OwnerController::class, 'editSupplier'])->name('suppliers.edit');
+    Route::put('/suppliers/{id}', [OwnerController::class, 'updateSupplier'])->name('suppliers.update');
+    Route::patch('/suppliers/{id}/toggle', [OwnerController::class, 'toggleSupplierStatus'])->name('suppliers.toggle');
+    Route::delete('/suppliers/{id}', [OwnerController::class, 'destroySupplier'])->name('suppliers.destroy');
+    // ==========================================
+    // Material Management Routes - VIEW ONLY
+    // ==========================================
+    Route::get('/materials', [OwnerController::class, 'materials'])->name('materials');
+    Route::get('/materials/{id}', [OwnerController::class, 'showMaterial'])->name('materials.show');
+
+    // ==========================================
+    // Product Management Routes - VIEW ONLY
+    // ==========================================
+    Route::get('/products', [OwnerController::class, 'products'])->name('products');
+    Route::get('/products/{id}', [OwnerController::class, 'showProduct'])->name('products.show');
+
+    // ==========================================
+    // Production Routes - VIEW ONLY
+    // ==========================================
+    Route::get('/productions', [OwnerController::class, 'productions'])->name('productions');
+    Route::get('/productions/{id}', [OwnerController::class, 'showProduction'])->name('productions.show');
+
+    // ==========================================
+    // Distribution Routes - VIEW ONLY
+    // ==========================================
+    Route::get('/distributions', [OwnerController::class, 'distributions'])->name('distributions');
+    Route::get('/distributions/{id}', [OwnerController::class, 'showDistribution'])->name('distributions.show');
+
+    // ==========================================
+    // Forecasting Routes - VIEW ONLY
+    // ==========================================
+    Route::get('/forecasts', [OwnerController::class, 'forecasts'])->name('forecasts');
+
+    // ==========================================
+    // Reports Routes - VIEW ONLY
+    // ==========================================
+    Route::get('/reports', [OwnerController::class, 'reports'])->name('reports');
+    Route::get('/reports/export', [OwnerController::class, 'exportReport'])->name('reports.export');
+
+    // ==========================================
+    // Profile Routes
+    // ==========================================
+    Route::get('/profile', [OwnerController::class, 'profile'])->name('profile');
+    Route::put('/profile', [OwnerController::class, 'updateProfile'])->name('profile.update');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Legacy Routes (Optional - Keep if still used)
-|--------------------------------------------------------------------------
-*/
-
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
-// Route::middleware('auth')->group(function () {
-//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
-//     Route::resource('roles', RoleController::class);
-//     Route::resource('users', UserController::class);
-//     Route::resource('suppliers', SupplierController::class);
-//     Route::resource('materials', MaterialController::class);
-//     Route::resource('products', ProductController::class);
-//     Route::resource('stocks', StockController::class);
-//     Route::resource('productions', ProductionController::class);
-//     Route::resource('distributions', DistributionController::class);
-//     Route::resource('forecasts', ForecastController::class);
-// });
 
 require __DIR__.'/auth.php';
