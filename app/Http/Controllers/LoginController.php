@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
@@ -35,15 +36,31 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            // Redirect based on user role
+            // Get authenticated user
             $user = Auth::user();
+            
+            // Debugging - Log role information
+            Log::info('User logged in', [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'user_email' => $user->email,
+                'role_id' => $user->role_id,
+                'role_name' => $user->role ? $user->role->name : 'No Role',
+                'has_owner_role' => $user->hasRole('owner'),
+                'has_koordinator_role' => $user->hasRole('koordinator'),
+            ]);
 
-            if ($user->hasRole('Koordinator')) {
-                return redirect()->intended('/koordinator/dashboardkoordinator/index');
-            } elseif ($user->hasRole('Owner')) {
-                return redirect()->intended('/manager/dashboard');
+            // Redirect based on user role
+            if ($user->hasRole('koordinator')) {
+                Log::info('Redirecting to koordinator dashboard');
+                return redirect()->intended(route('koordinator.dashboard'));
+            } elseif ($user->hasRole('owner')) {
+                Log::info('Redirecting to owner dashboard');
+                return redirect()->intended(route('owner.dashboard'));
             }
 
+            // Fallback jika role tidak dikenali
+            Log::warning('Role not recognized, redirecting to default dashboard');
             return redirect()->intended('/dashboard');
         }
 

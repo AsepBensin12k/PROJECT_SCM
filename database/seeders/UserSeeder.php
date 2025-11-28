@@ -17,13 +17,17 @@ class UserSeeder extends Seeder
             'role_id' => $ownerRole->id,
             'name' => 'Owner ROJEMBER',
             'email' => 'owner@rojember.com',
+            'phone' => '081234567890',
+            'address' => 'Jl. Merdeka No.1, Jember',
             'password' => bcrypt('password')
         ]);
 
         User::create([
             'role_id' => $koordinatorRole->id,
-            'name' => 'Koordinator Gudang',
+            'name' => 'Koordinator',
             'email' => 'koordinator@rojember.com',
+            'phone' => '089876543210',
+            'address' => 'Jl. Merdeka No.2, Jember',
             'password' => bcrypt('password')
         ]);
     }

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\{
     ProfileController,
@@ -14,101 +15,135 @@ use App\Http\Controllers\{
     DistributionController,
     ForecastController,
     LoginController,
-    KoordinatorController
+    KoordinatorController,
+    OwnerController
 };
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/', function () {
     return view('auth/login');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
+
 Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('login', [LoginController::class, 'login']);
 
-// routes/web.php
-Route::put('/{id}', [KoordinatorDashboardController::class, 'updateProduction'])->name('update');
-Route::get('koordinator/dashboardkoordinator/index', [KoordinatorController::class, 'index'])->name('koordinator.dashboard');
-Route::get('koordinator/manajemenproduksi/index', [KoordinatorController::class, 'production'])->name('manajemenproduksi');
-// Rute untuk menampilkan FORMULIR pembuatan produksi (GET)
-Route::get('koordinator/manajemenproduksi/create', [KoordinatorController::class, 'createProduction'])->name('manajemenproduksi.create');
-Route::get('/{id}/edit', [KoordinatorController::class, 'editProduction'])->name('manajemenproduksi.edit');
-Route::put('/manajemenproduksi/{production}', [KoordinatorController::class, 'updateProduction'])->name('manajemenproduksi.update');
-Route::delete('/koordinator/production/{production}', [KoordinatorController::class, 'destroyProduction'])->name('koordinator.production.destroy');
+Route::post('/logout', function (Illuminate\Http\Request $request) {
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect('/');
+})->name('logout');
 
-// 1. Index (READ - Menampilkan semua material)
-Route::get('/koordinator/materials', [KoordinatorController::class, 'materials'])
-    ->name('koordinator.materials');
+/*
+|--------------------------------------------------------------------------
+| Koordinator Routes - Full CRUD Access
+|--------------------------------------------------------------------------
+*/
 
-// 2. Store (CREATE - Menyimpan material baru)
-Route::post('/koordinator/materials', [KoordinatorController::class, 'storeMaterial'])
-    ->name('koordinator.materials.store');
-Route::get
-('/koordinator/materials/create', [KoordinatorController::class, 'createMaterial'])
-    ->name('koordinator.materials.create');
-// 3. Update (UPDATE - Memperbarui material)
-// Asumsi Anda akan menggunakan form edit yang menunjuk ke route ini
-Route::put('/koordinator/materials/{material}', [KoordinatorController::class, 'updateMaterial'])
-    ->name('koordinator.materials.update');
-Route::get('/koordinator/materials/{material}', [KoordinatorController::class, 'editMaterial'])
-    ->name('koordinator.materials.edit');
-// 4. Destroy (DELETE - Menghapus material)
-Route::delete('/koordinator/materials/{material}', [KoordinatorController::class, 'destroyMaterial'])
-    ->name('koordinator.materials.destroy');
-// Rute untuk MENYIMPAN DATA produksi baru (POST)
-Route::post('koordinator/manajemenproduksi/store', [KoordinatorController::class, 'storeProduction'])->name('manajemenproduksi.store');
+Route::middleware(['auth'])->prefix('koordinator')->group(function () {
+    
+    // Dashboard
+    Route::get('dashboardkoordinator/index', [KoordinatorController::class, 'index'])->name('koordinator.dashboard');
+    
+    // Profile
+    Route::get('/profile', [KoordinatorController::class, 'profile'])->name('koordinator.profile');
+    Route::get('/profile/edit', [KoordinatorController::class, 'editProfile'])->name('koordinator.profile.edit');
+    Route::put('/profile', [KoordinatorController::class, 'updateProfile'])->name('koordinator.profile.update');
+    
+    // Materials Management
+    Route::get('/materials', [KoordinatorController::class, 'materials'])->name('koordinator.materials');
+    Route::get('/materials/create', [KoordinatorController::class, 'createMaterial'])->name('koordinator.materials.create');
+    Route::post('/materials', [KoordinatorController::class, 'storeMaterial'])->name('koordinator.materials.store');
+    Route::get('/materials/{material}', [KoordinatorController::class, 'editMaterial'])->name('koordinator.materials.edit');
+    Route::put('/materials/{material}', [KoordinatorController::class, 'updateMaterial'])->name('koordinator.materials.update');
+    Route::delete('/materials/{material}', [KoordinatorController::class, 'destroyMaterial'])->name('koordinator.materials.destroy');
+    
+    // Products Management
+    Route::get('/products', [KoordinatorController::class, 'products'])->name('koordinator.products');
+    Route::get('/products/create', [KoordinatorController::class, 'createProduct'])->name('koordinator.products.create');
+    Route::post('/products', [KoordinatorController::class, 'storeProduct'])->name('koordinator.products.store');
+    Route::get('/products/{product}/edit', [KoordinatorController::class, 'editProduct'])->name('koordinator.products.edit');
+    Route::put('/products/{product}', [KoordinatorController::class, 'updateProduct'])->name('koordinator.products.update');
+    Route::delete('/products/{product}', [KoordinatorController::class, 'destroyProduct'])->name('koordinator.products.destroy');
+    
+    // Production Management
+    Route::get('manajemenproduksi/index', [KoordinatorController::class, 'production'])->name('manajemenproduksi');
+    Route::get('manajemenproduksi/create', [KoordinatorController::class, 'createProduction'])->name('manajemenproduksi.create');
+    Route::post('manajemenproduksi/store', [KoordinatorController::class, 'storeProduction'])->name('manajemenproduksi.store');
+    Route::get('/{id}/edit', [KoordinatorController::class, 'editProduction'])->name('manajemenproduksi.edit');
+    Route::put('/manajemenproduksi/{production}', [KoordinatorController::class, 'updateProduction'])->name('manajemenproduksi.update');
+    Route::delete('/production/{production}', [KoordinatorController::class, 'destroyProduction'])->name('koordinator.production.destroy');
+    
+    // Distribution Management
+    Route::get('/distributions', [KoordinatorController::class, 'distributions'])->name('koordinator.distributions');
+    Route::get('/distributions/create', [KoordinatorController::class, 'createDistribution'])->name('koordinator.distributions.create');
+    Route::post('/distributions', [KoordinatorController::class, 'storeDistribution'])->name('koordinator.distributions.store');
+    Route::get('/distributions/{distribution}/edit', [KoordinatorController::class, 'editDistribution'])->name('koordinator.distributions.edit');
+    Route::put('/distributions/{distribution}', [KoordinatorController::class, 'updateDistribution'])->name('koordinator.distributions.update');
+    Route::delete('/distributions/{distribution}', [KoordinatorController::class, 'destroyDistribution'])->name('koordinator.distributions.destroy');
+});
 
-//stokjadi
-Route::get('/products', [KoordinatorController::class, 'products'])->name('koordinator.products');
-Route::get('/products/create', [KoordinatorController::class, 'createProduct'])->name('koordinator.products.create');
-Route::post('/products', [KoordinatorController::class, 'storeProduct'])->name('koordinator.products.store');
-Route::get('/products/{product}/edit', [KoordinatorController::class, 'editProduct'])->name('koordinator.products.edit');
-Route::put('/products/{product}', [KoordinatorController::class, 'updateProduct'])->name('koordinator.products.update');
-Route::delete('/products/{product}', [KoordinatorController::class, 'destroyProduct'])->name('koordinator.products.destroy');
+/*
+|--------------------------------------------------------------------------
+| Owner Routes - Read Only Access
+|--------------------------------------------------------------------------
+*/
 
-// Distribution Routes
-Route::get('/distributions', [KoordinatorController::class, 'distributions'])->name('koordinator.distributions');
-Route::get('/distributions/create', [KoordinatorController::class, 'createDistribution'])->name('koordinator.distributions.create');
-Route::post('/distributions', [KoordinatorController::class, 'storeDistribution'])->name('koordinator.distributions.store');
-Route::get('/distributions/{distribution}/edit', [KoordinatorController::class, 'editDistribution'])->name('koordinator.distributions.edit');
-Route::put('/distributions/{distribution}', [KoordinatorController::class, 'updateDistribution'])->name('koordinator.distributions.update');
-Route::delete('/distributions/{distribution}', [KoordinatorController::class, 'destroyDistribution'])->name('koordinator.distributions.destroy');
+Route::middleware(['auth'])->prefix('owner')->group(function () {
+    
+    // Dashboard
+    Route::get('/dashboard', [OwnerController::class, 'index'])->name('owner.dashboard');
+    
+    // Materials - View Only
+    Route::get('/materials', [OwnerController::class, 'materials'])->name('owner.materials');
+    
+    // Products - View Only
+    Route::get('/products', [OwnerController::class, 'products'])->name('owner.products');
+    
+    // Productions - View Only
+    Route::get('/productions', [OwnerController::class, 'productions'])->name('owner.productions');
+    
+    // Distributions - View Only
+    Route::get('/distributions', [OwnerController::class, 'distributions'])->name('owner.distributions');
+    
+    // Forecasts - View Only
+    Route::get('/forecasts', [OwnerController::class, 'forecasts'])->name('owner.forecasts');
+    
+    // Reports - View Only
+    Route::get('/reports', [OwnerController::class, 'reports'])->name('owner.reports');
+    
+    // Profile
+    Route::get('/profile', [OwnerController::class, 'profile'])->name('owner.profile');
+    Route::get('/profile/edit', [OwnerController::class, 'editProfile'])->name('owner.profile.edit');
+    Route::put('/profile', [OwnerController::class, 'updateProfile'])->name('owner.profile.update');
+});
 
-// Profile Routes
-Route::get('/koordinator/profile', [KoordinatorController::class, 'profile'])->name('koordinator.profile');
-Route::get('/koordinator/profile/edit', [KoordinatorController::class, 'editProfile'])->name('koordinator.profile.edit');
-Route::put('/koordinator/profile', [KoordinatorController::class, 'updateProfile'])->name('koordinator.profile.update');
-
-// Dashboard Routes (bisa diakses semua role)
-// Route::get('/dashboard', [CoordinatorDashboardController::class, 'index'])->name('dashboard');
-
-// // Materials CRUD (bisa diakses semua role)
-// Route::get('/materials', [CoordinatorDashboardController::class, 'materials'])->name('materials');
-// Route::post('/materials', [CoordinatorDashboardController::class, 'storeMaterial'])->name('materials.store');
-// Route::put('/materials/{id}', [CoordinatorDashboardController::class, 'updateMaterial'])->name('materials.update');
-// Route::delete('/materials/{id}', [CoordinatorDashboardController::class, 'destroyMaterial'])->name('materials.destroy');
-
-// // Products CRUD (bisa diakses semua role)
-// Route::get('/products', [CoordinatorDashboardController::class, 'products'])->name('products');
-// Route::post('/products', [CoordinatorDashboardController::class, 'storeProduct'])->name('products.store');
-// Route::put('/products/{id}', [CoordinatorDashboardController::class, 'updateProduct'])->name('products.update');
-// Route::delete('/products/{id}', [CoordinatorDashboardController::class, 'destroyProduct'])->name('products.destroy');
-
-// // Production Schedule (bisa diakses semua role)
-// Route::get('/production', [CoordinatorDashboardController::class, 'production'])->name('production');
-// Route::post('/production', [CoordinatorDashboardController::class, 'storeProduction'])->name('production.store');
-// Route::put('/production/{id}', [CoordinatorDashboardController::class, 'updateProduction'])->name('production.update');
-// Route::delete('/production/{id}', [CoordinatorDashboardController::class, 'destroyProduction'])->name('production.destroy');
+/*
+|--------------------------------------------------------------------------
+| Legacy Routes (Optional - Keep if still used)
+|--------------------------------------------------------------------------
+*/
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
-
 // Route::middleware('auth')->group(function () {
-
 //     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 //     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 //     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
+    
 //     Route::resource('roles', RoleController::class);
 //     Route::resource('users', UserController::class);
 //     Route::resource('suppliers', SupplierController::class);
@@ -120,12 +155,4 @@ Route::put('/koordinator/profile', [KoordinatorController::class, 'updateProfile
 //     Route::resource('forecasts', ForecastController::class);
 // });
 
-Route::post('/logout', function (Illuminate\Http\Request $request) {
-    Auth::logout(); // Log user keluar
-
-    $request->session()->invalidate(); // Membatalkan session
-    $request->session()->regenerateToken(); // Meregenerasi token CSRF
-
-    return redirect('/'); // Arahkan user kembali ke halaman utama atau login
-})->name('logout');
 require __DIR__.'/auth.php';
