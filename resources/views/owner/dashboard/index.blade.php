@@ -37,7 +37,8 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-white text-sm font-semibold leading-none">Welcome,
-                                {{ Auth::user()->name }}</span>
+                                {{ optional(Auth::user())->name ?? 'Owner' }}
+                            </span>
                             <span class="text-purple-100 text-xs">Owner</span>
                         </div>
                     </div>
@@ -293,35 +294,27 @@
                                         {{ $production->product->name }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-600">
-                                        {{ $production->material->name }}
+                                        {{-- Jika relasi material masih opsional --}}
+                                        {{ optional($production->materials->first())->name ?? '-' }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-gray-800">
-                                        {{ $production->quantity_used }} {{ $production->material->unit }}
+                                        {{-- Ambil jumlah bahan pertama untuk contoh --}}
+                                        {{ optional($production->materials->first())->pivot->quantity_used ?? 0 }}
+                                        {{ optional($production->materials->first())->unit ?? '' }}
                                     </td>
+
+                                    {{-- ✅ Kolom Qty Diproduksi --}}
                                     <td class="px-4 py-3 text-sm">
                                         <span
                                             class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
                                             {{ $production->quantity_produced }} pcs
                                         </span>
                                     </td>
-                                    <td class=" font-medium px-4 py-3 text-sm text-gray-600">
-                                        Bagian Produksi
+
+                                    {{-- ✅ Kolom Operator --}}
+                                    <td class="font-medium px-4 py-3 text-sm text-gray-600">
+                                        {{ $production->operator }}
                                     </td>
-                                    {{-- <td class="px-4 py-3 text-sm">
-                                        @php
-                                            $efficiency =
-                                                ($production->quantity_produced / $production->quantity_used) * 100;
-                                        @endphp
-                                        <span
-                                            class="px-2 py-1 text-xs font-medium rounded-full
-                                            {{ $efficiency >= 80
-                                                ? 'bg-green-100 text-green-800'
-                                                : ($efficiency >= 60
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : 'bg-red-100 text-red-800') }}">
-                                            {{ number_format($efficiency, 1) }}%
-                                        </span>
-                                    </td> --}}
                                 </tr>
                             @empty
                                 <tr>

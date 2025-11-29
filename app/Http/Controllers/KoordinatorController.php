@@ -6,6 +6,7 @@ use App\Models\Material;
 use App\Models\Product;
 use App\Models\Distribution;
 use App\Models\Stock;
+use App\Models\Procurement;
 use App\Models\Production;
 use App\Models\Supplier;
 use App\Models\User;
@@ -27,7 +28,7 @@ class KoordinatorController extends Controller
         $outOfStockMaterials = Material::where('stock', 0)->get();
 
         // Jadwal produksi minggu ini - PERBAIKAN
-        $productionSchedule = Production::with(['product', 'material', 'user'])
+        $productionSchedule = Production::with(['product', 'materials', 'user'])
             ->whereBetween('production_date', [now()->startOfWeek(), now()->endOfWeek()])
             ->orderBy('production_date')
             ->orderBy('created_at')
@@ -52,6 +53,118 @@ class KoordinatorController extends Controller
         ));
     }
 
+    // 🧾 PENGADAAN BAHAN BAKU (PROCUREMENT) =====================================
+    public function procurements()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $procurements = Procurement::with(['material', 'supplier'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('koordinator.manajemen-pengadaan.index', compact('procurements'));
+    }
+
+    public function createProcurement()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $materials = Material::all();
+        $suppliers = Supplier::all();
+
+        return view('koordinator.manajemen-pengadaan.create', compact('materials', 'suppliers'));
+    }
+
+    public function storeProcurement(Request $request)
+    {
+        $request->validate([
+        'material_id' => 'required|exists:materials,id',
+        'supplier_id' => 'required|exists:suppliers,id',
+        'tanggal_datang' => 'required|date',
+        'qty' => 'required|integer|min:1',
+    ]);
+
+        // Ambil data harga dari material
+        $material = \App\Models\Material::findOrFail($request->material_id);
+        $total_harga = $material->price * $request->qty;
+
+        // Simpan data pengadaan
+        \App\Models\Procurement::create([
+            'material_id' => $request->material_id,
+            'supplier_id' => $request->supplier_id,
+            'tanggal_datang' => $request->tanggal_datang,
+            'qty' => $request->qty,
+            'total_harga' => $total_harga,
+            'status' => 'diproses', // default status otomatis
+        ]);
+
+        return redirect()->route('koordinator.procurements')->with('success', 'Pengadaan berhasil ditambahkan!');
+    }
+
+
+    public function editProcurement($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $procurement = Procurement::with(['material', 'supplier'])->findOrFail($id);
+        $materials = Material::all();
+        $suppliers = Supplier::all();
+
+        return view('koordinator.manajemen-pengadaan.edit', compact('procurement', 'materials', 'suppliers'));
+    }
+
+    public function updateProcurement(Request $request, $id)
+    {
+        $request->validate([
+        'material_id' => 'required|exists:materials,id',
+        'supplier_id' => 'required|exists:suppliers,id',
+        'tanggal_datang' => 'required|date',
+        'qty' => 'required|integer|min:1',
+        'status' => 'required|in:diproses,dikirim,sampai,dibatalkan',
+    ]);
+
+
+        $procurement = Procurement::findOrFail($id);
+        $oldStatus = $procurement->status;
+        $procurement->update($request->all());
+
+        // 🧮 Jika status berubah jadi "sampai", stok bahan baku bertambah
+        if ($oldStatus !== 'sampai' && $request->status === 'sampai') {
+            $material = Material::find($procurement->material_id);
+            if ($material) {
+                $material->increment('stock', $procurement->qty);
+
+                // Simpan log stok
+                Stock::create([
+                    'material_id' => $material->id,
+                    'quantity' => $procurement->qty,
+                    'type' => 'in',
+                    'source' => 'procurement',
+                    'notes' => 'Stok masuk dari pengadaan bahan baku oleh supplier ' . $procurement->supplier->name,
+                ]);
+            }
+        }
+
+        return redirect()->route('koordinator.procurements')
+            ->with('success', 'Data pengadaan berhasil diperbarui!');
+    }
+
+    public function destroyProcurement($id)
+    {
+        $procurement = Procurement::findOrFail($id);
+        $procurement->delete();
+
+        return redirect()->route('koordinator.procurements')
+            ->with('success', 'Data pengadaan berhasil dihapus!');
+    }
+
+
     // MANAJEMEN PRODUKSI - INDEX
     public function production()
     {
@@ -63,10 +176,10 @@ class KoordinatorController extends Controller
             ->orderBy('production_date', 'desc')
             ->get();
 
-        return view('koordinator.manajemen produksi.index', compact('productions'));
+        return view('koordinator.manajemenproduksi.index', compact('productions'));
     }
 
-    // MANAJEMEN PRODUKSI - CREATE
+    // 🏭 MANAJEMEN PRODUKSI - CREATE
     public function createProduction()
     {
         if (!Auth::check()) {
@@ -75,34 +188,58 @@ class KoordinatorController extends Controller
 
         $products = Product::all();
         $materials = Material::all();
-        $users = User::all();
 
-        return view('koordinator.manajemen produksi.create', compact('products', 'materials', 'users'));
+        return view('koordinator.manajemenproduksi.create', compact('products', 'materials'));
     }
 
-    // MANAJEMEN PRODUKSI - STORE
+
+    // 🏭 MANAJEMEN PRODUKSI - STORE
     public function storeProduction(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'material_id' => 'required|exists:materials,id',
-            'user_id' => 'required|exists:users,id',
-            'quantity_used' => 'required|numeric|min:1',
+            'production_date' => 'required|date',
+            'materials' => 'required|array|min:1',
+            'materials.*' => 'exists:materials,id',
+            'quantities' => 'required|array|min:1',
+            'quantities.*' => 'numeric|min:1',
             'quantity_produced' => 'required|numeric|min:1',
-            'production_date' => 'required|date'
         ]);
 
-        Production::create([
+        // 🔹 Generate kode produksi (PRD001, PRD002, dst)
+        $latestCode = Production::max('code');
+        $nextCode = $latestCode ? 'PRD' . str_pad((int)substr($latestCode, 3) + 1, 3, '0', STR_PAD_LEFT) : 'PRD001';
+
+        // 🔹 Simpan data utama produksi
+        $production = Production::create([
+            'code' => $nextCode,
+            'user_id' => Auth::id(),
             'product_id' => $request->product_id,
-            'material_id' => $request->material_id,
-            'user_id' => $request->user_id,
-            'quantity_used' => $request->quantity_used,
             'quantity_produced' => $request->quantity_produced,
-            'production_date' => $request->production_date
+            'production_date' => $request->production_date,
+            'operator' => 'Bagian Produksi',
+            'status' => 'pending',
         ]);
 
-        return redirect()->route('manajemenproduksi')->with('success', 'Data produksi berhasil ditambahkan!');
+        // 🔹 Simpan bahan baku & kurangi stok
+        foreach ($request->materials as $index => $materialId) {
+            $qtyUsed = $request->quantities[$index] ?? 0;
+
+            if ($qtyUsed > 0) {
+                $production->materials()->attach($materialId, ['quantity_used' => $qtyUsed]);
+
+                // Kurangi stok bahan baku
+                $material = Material::find($materialId);
+                if ($material) {
+                    $material->decrement('stock', $qtyUsed);
+                }
+            }
+        }
+
+        // 🔹 Redirect ke halaman index produksi
+        return redirect()->route('manajemenproduksi')->with('success', 'Jadwal produksi berhasil dibuat!');
     }
+
 
     // MANAJEMEN PRODUKSI - EDIT
     public function editProduction($id)
@@ -116,7 +253,7 @@ class KoordinatorController extends Controller
         $materials = Material::all();
         $users = User::all();
 
-        return view('koordinator.manajemen produksi.edit', compact('production', 'products', 'materials', 'users'));
+        return view('koordinator.manajemenproduksi.edit', compact('production', 'products', 'materials', 'users'));
     }
 
     // MANAJEMEN PRODUKSI - UPDATE
@@ -165,20 +302,6 @@ class KoordinatorController extends Controller
 
         return view('koordinator.manajemenstokbahanbaku.index', compact('materials', 'suppliers'));
     }
-    public function editMaterial($id)
-    {
-        if (!Auth::check()) {
-            return redirect()->route('login');
-        }
-
-        // Ambil data Material yang akan diedit
-        $material = Material::findOrFail($id);
-        // Ambil semua Supplier untuk dropdown
-        $suppliers = Supplier::all();
-
-        // Tampilkan view form edit
-        return view('koordinator.manajemenstokbahanbaku.edit', compact('material', 'suppliers'));
-    }
 
     public function storeMaterial(Request $request)
     {
@@ -186,14 +309,20 @@ class KoordinatorController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'name' => 'required|string|max:255',
             'unit' => 'required|string|max:50',
-            'stock' => 'required|numeric|min:0',
             'price' => 'required|numeric|min:0'
         ]);
 
-        Material::create($request->all());
+        Material::create([
+            'supplier_id' => $request->supplier_id,
+            'name' => $request->name,
+            'unit' => $request->unit,
+            'price' => $request->price,
+            'stock' => 0, // default stok awal = 0
+        ]);
 
-        return redirect()->route('koordinator.materials')->with('success', 'Material berhasil ditambahkan!');
+        return redirect()->route('koordinator.materials')->with('success', 'Bahan baku baru berhasil ditambahkan!');
     }
+
 
     public function updateMaterial(Request $request, $id)
     {
@@ -260,24 +389,17 @@ class KoordinatorController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0'
+            'price' => 'required|numeric|min:0'
         ]);
 
-        Product::create($request->all());
+        Product::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'price' => $request->price,
+            'stock' => 0
+        ]);
 
-        return redirect()->route('koordinator.products')->with('success', 'Produk berhasil ditambahkan!');
-    }
-
-    // PRODUCTS - EDIT
-    public function editProduct($id)
-    {
-        if (!Auth::check()) {
-            return redirect()->route('login');
-        }
-
-        $product = Product::findOrFail($id);
-        return view('koordinator.manajemenstokbarangjadi.edit', compact('product'));
+        return redirect()->route('koordinator.products')->with('success', 'Produk berhasil ditambahkan dengan stok awal 0.');
     }
 
     // PRODUCTS - UPDATE
@@ -304,7 +426,7 @@ class KoordinatorController extends Controller
 
         return redirect()->route('koordinator.products')->with('success', 'Produk berhasil dihapus!');
     }
- // DISTRIBUTION - INDEX
+
     // DISTRIBUTION - INDEX
     public function distributions()
     {
@@ -330,6 +452,20 @@ class KoordinatorController extends Controller
             'completedCount'
         ));
     }
+    
+    public function showDistribution($id)
+    {
+        // Pastikan user login
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        // Ambil data distribusi dengan relasi produk & user
+        $distribution = \App\Models\Distribution::with(['product', 'user'])->findOrFail($id);
+
+        // Kirim data ke view
+        return view('koordinator.manajemendistribusi.show', compact('distribution'));
+    }
 
 
     // DISTRIBUTION - CREATE
@@ -345,40 +481,42 @@ class KoordinatorController extends Controller
         return view('koordinator.manajemendistribusi.create', compact('products', 'users'));
     }
 
-    // DISTRIBUTION - STORE
+        // DISTRIBUTION - STORE
     public function storeDistribution(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'destination' => 'required|string|max:255',
             'quantity' => 'required|integer|min:1',
-            'status' => 'required|in:diproses,dikirim,selesai,dibatalkan',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
         ]);
 
-        // Cek stok produk
         $product = Product::findOrFail($request->product_id);
         if ($product->stock < $request->quantity) {
             return redirect()->back()->with('error', 'Stok produk tidak mencukupi! Stok tersedia: ' . $product->stock);
         }
 
+        // 🔹 Generate kode distribusi (DST001, DST002, dst)
+        $latestCode = Distribution::max('code');
+        $nextCode = $latestCode ? 'DST' . str_pad((int)substr($latestCode, 3) + 1, 4, '0', STR_PAD_LEFT) : 'DST0001';
+
+        // 🔹 Simpan data distribusi
         Distribution::create([
+            'code' => $nextCode,
             'user_id' => Auth::id(),
             'product_id' => $request->product_id,
             'destination' => $request->destination,
             'quantity' => $request->quantity,
-            'status' => $request->status,
-            'notes' => $request->notes
-            // created_at dan updated_at otomatis diisi oleh Laravel
+            'status' => 'diproses', // default otomatis
+            'notes' => $request->notes,
         ]);
 
-        // Kurangi stok produk jika status bukan "dibatalkan"
-        if ($request->status !== 'dibatalkan') {
-            $product->decrement('stock', $request->quantity);
-        }
+        $product->decrement('stock', $request->quantity);
 
-        return redirect()->route('koordinator.distributions')->with('success', 'Data distribusi berhasil ditambahkan!');
+        return redirect()->route('koordinator.distributions')
+            ->with('success', 'Distribusi baru berhasil ditambahkan!');
     }
+
 
     // DISTRIBUTION - EDIT
     public function editDistribution($id)

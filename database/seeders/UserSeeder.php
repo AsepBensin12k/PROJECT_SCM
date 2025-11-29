@@ -5,30 +5,38 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Role;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $ownerRole = Role::where('name', 'Owner')->first();
-        $koordinatorRole = Role::where('name', 'Koordinator')->first();
+        // pastikan role ada, jika belum otomatis dibuat
+        $ownerRole = Role::firstOrCreate(['name' => 'owner']);
+        $koordinatorRole = Role::firstOrCreate(['name' => 'koordinator']);
 
-        User::create([
-            'role_id' => $ownerRole->id,
-            'name' => 'Owner ROJEMBER',
-            'email' => 'owner@rojember.com',
-            'phone' => '081234567890',
-            'address' => 'Jl. Merdeka No.1, Jember',
-            'password' => bcrypt('password')
-        ]);
+        // buat akun Owner
+        User::updateOrCreate(
+            ['email' => 'owner@rojember.com'],
+            [
+                'role_id' => $ownerRole->id,
+                'name' => 'Owner ROJEMBER',
+                'phone' => '081234567890',
+                'address' => 'Jl. Merdeka No.1, Jember',
+                'password' => Hash::make('password'),
+            ]
+        );
 
-        User::create([
-            'role_id' => $koordinatorRole->id,
-            'name' => 'Koordinator',
-            'email' => 'koordinator@rojember.com',
-            'phone' => '089876543210',
-            'address' => 'Jl. Merdeka No.2, Jember',
-            'password' => bcrypt('password')
-        ]);
+        // buat akun Koordinator
+        User::updateOrCreate(
+            ['email' => 'koordinator@rojember.com'],
+            [
+                'role_id' => $koordinatorRole->id,
+                'name' => 'Koordinator',
+                'phone' => '089876543210',
+                'address' => 'Jl. Merdeka No.2, Jember',
+                'password' => Hash::make('password'),
+            ]
+        );
     }
 }

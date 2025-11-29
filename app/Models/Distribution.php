@@ -10,20 +10,23 @@ class Distribution extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'product_id',
-        'destination',
-        'quantity',
-        'status'
+    'code',
+    'user_id',
+    'product_id',
+    'destination',
+    'quantity',
+    'status',
+    'notes'
     ];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(\App\Models\Product::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
+
 }

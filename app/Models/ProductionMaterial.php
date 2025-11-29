@@ -5,15 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Forecast extends Model
+class ProductionMaterial extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'material_id',
-        'period',
-        'forecast_value',
-    ];
+    protected $fillable = ['production_id', 'material_id', 'quantity_used'];
+
+    public function production()
+    {
+        return $this->belongsTo(Production::class);
+    }
 
     public function material()
     {

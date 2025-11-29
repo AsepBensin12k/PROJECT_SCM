@@ -29,8 +29,9 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
-    public function hasRole(string $roleName): bool
+    public function hasRole($roleName)
     {
         return $this->role && strtolower($this->role->name) === strtolower($roleName);
     }
+
 }

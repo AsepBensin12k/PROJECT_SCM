@@ -165,8 +165,13 @@
                                             <div class="font-medium">{{ $production->product->name }}</div>
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-800">
-                                            {{ $production->material->name }}
+                                            @if ($production->materials->count() > 0)
+                                                {{ $production->materials->pluck('name')->join(', ') }}
+                                            @else
+                                                <span class="text-gray-400 italic">-</span>
+                                            @endif
                                         </td>
+
                                         <td class="px-4 py-3 text-sm text-gray-800">
                                             <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
                                                 {{ $production->quantity_produced }} pcs

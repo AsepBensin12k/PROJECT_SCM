@@ -1,232 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Produk</title>
+    <title>Manajemen Stok Produk Jadi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-gray-100">
-    <!-- Navigation -->
-    <nav class="bg-gradient-to-r from-amber-500 to-orange-500 shadow-xl sticky top-0 z-50 backdrop-blur-sm border-b border-amber-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
 
-                <!-- Logo & Brand -->
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+    <!-- 🔸 Navbar -->
+    <nav
+        class="bg-gradient-to-r from-amber-500 to-orange-500 shadow-xl sticky top-0 z-50 backdrop-blur-sm border-b border-amber-200">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-center h-16">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
-                        <i class="fas fa-industry text-white text-lg"></i>
+                    <div class="bg-white/20 p-2 rounded-xl border border-white/30">
+                        <i class="fas fa-cube text-white text-lg"></i>
                     </div>
-                    <a href="{{ route('koordinator.dashboard') }}" class="text-base font-bold text-white tracking-tight hover:text-amber-100 transition-all duration-300">
-                        Manajemen Stok Barang Jadi
-                    </a>
+                    <span class="text-white text-lg font-bold tracking-tight">Manajemen Stok Barang Jadi</span>
                 </div>
 
-                <!-- User Info & Actions -->
                 <div class="flex items-center space-x-4">
-
-                    <!-- Back to Dashboard Button -->
-                    <a href="{{ route('koordinator.dashboard') }}" class="group flex items-center space-x-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/20 hover:border-white/40 transition-all duration-300">
-                        <i class="fas fa-arrow-left text-white text-sm group-hover:-translate-x-1 transition-transform duration-300"></i>
-                        <span class="text-white text-sm font-semibold">Kembali ke Dashboard</span>
+                    <a href="{{ route('koordinator.dashboard') }}"
+                        class="flex items-center bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-white text-sm font-semibold transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Kembali
                     </a>
-
-                    <!-- User Name -->
-                    <div class="flex items-center space-x-3 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/20 shadow-lg">
-                        <div class="bg-white/25 p-1.5 rounded-full border border-white/30">
-                            <i class="fas fa-user text-white text-xs"></i>
-                        </div>
-                        <span class="text-white font-bold text-sm leading-tight">{{ Auth::user()->name }}</span>
+                    <div
+                        class="bg-white/15 px-4 py-2 rounded-xl border border-white/30 text-white font-semibold text-sm">
+                        <i class="fas fa-user mr-2 text-white/80"></i>{{ Auth::user()->name }}
                     </div>
-
                 </div>
             </div>
         </div>
     </nav>
 
-
-    <!-- Sidebar & Main Content -->
     <div class="flex">
-        <!-- Sidebar -->
         @include('components.koordinator-sidebar')
 
-        <!-- Main Content -->
-        <div class="flex-1 p-8 ml-64">
-            <!-- Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-800">Manajemen Produk</h1>
-                <p class="text-gray-600 mt-2">Kelola semua data produk dan stok</p>
+        <main class="flex-1 p-8 ml-64 fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Gudang Produk Jadi</h1>
+                    <p class="text-gray-600 text-sm">Produk dari hasil produksi yang siap distribusi.</p>
+                </div>
+
+                <a href="{{ route('koordinator.products.create') }}"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg shadow-md flex items-center transition">
+                    <i class="fas fa-plus mr-2"></i> Tambah Produk Baru
+                </a>
             </div>
 
-            <!-- Success Message -->
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            <!-- Action Buttons -->
-            <div class="mb-6 flex justify-between items-center">
-                <div class="flex space-x-4">
-                    <a href="{{ route('koordinator.products.create') }}"
-                       class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
-                        <i class="fas fa-plus mr-2"></i> Tambah Produk
-                    </a>
-                </div>
-
-                <!-- Statistics -->
-                <div class="flex space-x-4 text-sm">
-                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-                        Total: {{ $products->count() }} Produk
-                    </span>
-                </div>
+            <!-- Search -->
+            <div class="relative mb-4">
+                <input id="searchInput" type="text" placeholder="Cari produk..."
+                    class="w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-amber-400 focus:outline-none">
+                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
             </div>
 
-            <!-- Products Table -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Produk</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($products as $product)
-                            <tr class="hover:bg-gray-50 transition duration-150">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $product->name }}</div>
+            <!-- Tabel Produk -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden fade-in">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold text-gray-600">Nama Produk</th>
+                            <th class="px-6 py-3 text-left font-semibold text-gray-600">Deskripsi</th>
+                            <th class="px-6 py-3 text-left font-semibold text-gray-600">Harga</th>
+                            <th class="px-6 py-3 text-left font-semibold text-gray-600">Stok</th>
+                            <th class="px-6 py-3 text-left font-semibold text-gray-600">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTable" class="divide-y divide-gray-200">
+                        @forelse($products as $product)
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4 font-medium text-gray-900">{{ $product->name }}</td>
+                                <td class="px-6 py-4 text-gray-700">{{ $product->description ?? '-' }}</td>
+                                <td class="px-6 py-4 text-gray-900">Rp {{ number_format($product->price, 0, ',', '.') }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900 max-w-xs truncate">
-                                        {{ $product->description ?? '-' }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">
-                                        Rp {{ number_format($product->price, 0, ',', '.') }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs font-medium
-                                        {{ $product->stock > 50 ? 'bg-green-100 text-green-800' :
-                                           ($product->stock > 10 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }} rounded-full">
+                                    <span
+                                        class="px-2 py-1 text-xs font-semibold rounded-full
+                                    {{ $product->stock > 50
+                                        ? 'bg-green-100 text-green-700'
+                                        : ($product->stock > 10
+                                            ? 'bg-yellow-100 text-yellow-700'
+                                            : 'bg-red-100 text-red-700') }}">
                                         {{ $product->stock }} pcs
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 py-1 text-xs font-medium
-                                        {{ $product->stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }} rounded-full">
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="px-2 py-1 text-xs font-semibold rounded-full
+                                    {{ $product->stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                         {{ $product->stock > 0 ? 'Tersedia' : 'Habis' }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <a href="{{ route('koordinator.products.edit', $product->id) }}"
-                                           class="text-blue-600 hover:text-blue-900 transition duration-200">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        <form action="{{ route('koordinator.products.destroy', $product->id) }}"
-                                              method="POST"
-                                              class="inline"
-                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900 transition duration-200">
-                                                <i class="fas fa-trash"></i> Hapus
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
                             </tr>
-                            @empty
+                        @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                                    <div class="flex flex-col items-center justify-center py-8">
-                                        <i class="fas fa-cube text-4xl text-gray-300 mb-2"></i>
-                                        <p class="text-gray-500">Belum ada data produk</p>
-                                        <a href="{{ route('koordinator.products.create') }}"
-                                           class="mt-2 text-yellow-600 hover:text-yellow-700 font-medium">
-                                            Tambah produk pertama
-                                        </a>
-                                    </div>
+                                <td colspan="5" class="py-8 text-center text-gray-500">
+                                    <i class="fas fa-cube text-4xl text-gray-300 mb-2"></i>
+                                    <p class="text-gray-500 mt-2">Belum ada produk terdaftar.</p>
                                 </td>
                             </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-
-            <!-- Summary Cards -->
-            <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-                <!-- Total Products -->
-                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
-                    <div class="flex items-center">
-                        <div class="p-3 bg-blue-100 rounded-lg">
-                            <i class="fas fa-cube text-blue-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-600">Total Produk</h3>
-                            <p class="text-2xl font-bold text-gray-800">{{ $products->count() }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Stock -->
-                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
-                    <div class="flex items-center">
-                        <div class="p-3 bg-green-100 rounded-lg">
-                            <i class="fas fa-boxes text-green-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-600">Total Stok</h3>
-                            <p class="text-2xl font-bold text-gray-800">
-                                {{ $products->sum('stock') }} pcs
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Value -->
-                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500">
-                    <div class="flex items-center">
-                        <div class="p-3 bg-yellow-100 rounded-lg">
-                            <i class="fas fa-money-bill-wave text-yellow-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-600">Total Nilai Stok</h3>
-                            <p class="text-2xl font-bold text-gray-800">
-                                Rp {{ number_format($products->sum(function($product) {
-                                    return $product->price * $product->stock;
-                                }), 0, ',', '.') }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Out of Stock -->
-                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
-                    <div class="flex items-center">
-                        <div class="p-3 bg-red-100 rounded-lg">
-                            <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h3 class="text-sm font-medium text-gray-600">Stok Habis</h3>
-                            <p class="text-2xl font-bold text-gray-800">
-                                {{ $products->where('stock', 0)->count() }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
+
+    <!--  Script pencarian -->
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const productTable = document.getElementById('productTable');
+
+        searchInput.addEventListener('input', () => {
+            const searchValue = searchInput.value.toLowerCase();
+            Array.from(productTable.getElementsByTagName('tr')).forEach(row => {
+                const nameCell = row.cells[0]?.textContent.toLowerCase();
+                row.style.display = nameCell?.includes(searchValue) ? '' : 'none';
+            });
+        });
+    </script>
 </body>
+
 </html>

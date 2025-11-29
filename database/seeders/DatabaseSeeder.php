@@ -19,8 +19,9 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             StockSeeder::class,
             ProductionSeeder::class,
-            DistributionSeeder::class,
             ForecastSeeder::class,
+            ProcurementSeeder::class,
+            DistributionSeeder::class,
         ]);
     }
 }

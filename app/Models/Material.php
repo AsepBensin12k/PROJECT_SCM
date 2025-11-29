@@ -21,13 +21,16 @@ class Material extends Model
         return $this->hasMany(Stock::class);
     }
 
-    public function productions()
-    {
-        return $this->hasMany(Production::class);
-    }
-
     public function forecasts()
     {
         return $this->hasMany(Forecast::class);
     }
+
+    public function productions()
+    {
+        return $this->belongsToMany(Production::class, 'production_materials    ')
+                    ->withPivot('quantity_used')
+                    ->withTimestamps();
+    }
+
 }

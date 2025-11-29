@@ -44,7 +44,7 @@ class OwnerController extends Controller
         $products = Product::orderBy('stock', 'desc')->take(5)->get();
 
         // Produksi Terbaru (7 hari terakhir)
-        $recentProductions = Production::with(['product', 'material', 'user'])
+        $recentProductions = Production::with(['product', 'materials', 'user'])
             ->where('production_date', '>=', Carbon::now()->subDays(7))
             ->orderBy('production_date', 'desc')
             ->take(10)
@@ -78,10 +78,6 @@ class OwnerController extends Controller
         // Total Nilai Stok Produk Jadi
         $totalProductValue = Product::sum(DB::raw('stock * price'));
 
-        // Efisiensi Produksi Rata-rata (7 hari terakhir)
-        $avgEfficiency = Production::where('production_date', '>=', Carbon::now()->subDays(7))
-            ->selectRaw('AVG((quantity_produced / quantity_used) * 100) as efficiency')
-            ->value('efficiency') ?? 0;
 
         return view('owner.dashboard.index', compact(
             'totalMaterials',
@@ -101,8 +97,7 @@ class OwnerController extends Controller
             'monthlyProduction',
             'distributionByStatus',
             'totalMaterialValue',
-            'totalProductValue',
-            'avgEfficiency'
+            'totalProductValue'
         ));
     }
 
@@ -317,18 +312,26 @@ class OwnerController extends Controller
                 ->with('error', 'Gagal menghapus supplier: ' . $e->getMessage());
         }
     }
+    
     public function laporanProduksi()
     {
-        $productions = Production::with(['product', 'material'])
+        $productions = Production::with(['product', 'materials'])
             ->orderBy('production_date', 'desc')
             ->get();
 
         $totalProductions = $productions->count();
         $totalQuantity = $productions->sum('quantity_produced');
-        $totalMaterialsUsed = $productions->sum('quantity_used');
+
+        // ✅ Hitung total bahan terpakai dari pivot table
+        $totalMaterialsUsed = 0;
+        foreach ($productions as $prod) {
+            foreach ($prod->materials as $mat) {
+                $totalMaterialsUsed += $mat->pivot->quantity_used;
+            }
+        }
 
         $chartData = $productions
-            ->groupBy(fn($p) => Carbon::parse($p->production_date)->format('M Y'))
+            ->groupBy(fn($p) => \Carbon\Carbon::parse($p->production_date)->format('M Y'))
             ->map(fn($items) => $items->sum('quantity_produced'));
 
         return view('owner.laporan-produksi.index', compact(
@@ -340,12 +343,13 @@ class OwnerController extends Controller
         ));
     }
 
+
     public function detailProduksi($id)
     {
-        $production = Production::with(['product', 'material'])->findOrFail($id);
-
+        $production = Production::with(['product', 'materials'])->findOrFail($id);
         return view('owner.laporan-produksi.show', compact('production'));
     }
+
 
     public function laporanDistribusi()
     {
@@ -356,22 +360,18 @@ class OwnerController extends Controller
         // Total semua distribusi
         $totalDistributions = $distributions->count();
 
-        // ✅ Total barang dikirim (hanya yg statusnya "dikirim")
         $totalQuantitySent = $distributions
-            ->where('status', 'dikirim')
+            ->whereIn('status', ['dikirim', 'selesai'])
             ->sum('quantity');
 
-        // ✅ Jumlah distribusi yang sedang diproses (jumlah record, bukan quantity)
         $countInProgress = $distributions
             ->where('status', 'diproses')
             ->count();
 
-        // ✅ Jumlah distribusi yang sudah selesai
         $countCompleted = $distributions
             ->where('status', 'selesai')
             ->count();
 
-        // ✅ Untuk data chart (total quantity per bulan)
         $chartData = $distributions
             ->groupBy(fn($d) => Carbon::parse($d->created_at)->format('M Y'))
             ->map(fn($items) => $items->sum('quantity'));

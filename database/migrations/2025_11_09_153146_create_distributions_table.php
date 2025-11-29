@@ -10,12 +10,18 @@ return new class extends Migration
     {
         Schema::create('distributions', function (Blueprint $table) {
             $table->id();
+
+            // 🔹 Tambahkan kode distribusi unik
+            $table->string('code')->unique();
+
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->string('destination');
             $table->integer('quantity');
-            // ✅ Tambahkan enum 'selesai' supaya bisa dipakai tanpa error
+
+            // 🔹 Pastikan enum lengkap
             $table->enum('status', ['diproses', 'dikirim', 'selesai', 'dibatalkan'])->default('diproses');
+
             $table->text('notes')->nullable();
             $table->timestamps();
         });

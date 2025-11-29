@@ -10,13 +10,15 @@ class Production extends Model
     use HasFactory;
 
     protected $fillable = [
+        'code',
         'user_id',
-        'material_id',
         'product_id',
-        'quantity_used',
         'quantity_produced',
-        'production_date'
+        'production_date',
+        'operator',
+        'status'
     ];
+
 
     public function user()
     {
@@ -32,4 +34,11 @@ class Production extends Model
     {
         return $this->belongsTo(Product::class);
     }
+    public function materials()
+    {
+        return $this->belongsToMany(Material::class, 'production_materials')
+                    ->withPivot('quantity_used')
+                    ->withTimestamps();
+    }
+
 }

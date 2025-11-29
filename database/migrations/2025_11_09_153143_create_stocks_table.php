@@ -13,11 +13,14 @@ return new class extends Migration
     {
         Schema::create('stocks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('material_id')->nullable()->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->nullable()->constrained()->onDelete('cascade');
-            $table->integer('quantity')->default(0);
-            $table->enum('type', ['bahan', 'produk']);
+            $table->foreignId('material_id')->nullable()->constrained('materials')->onDelete('cascade');
+            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('cascade');
+            $table->string('type')->comment('in/out');
+            $table->integer('quantity');
+            $table->string('source')->nullable()->comment('procurement, production, distribution');
+            $table->text('notes')->nullable();
             $table->timestamps();
+
         });
     }
 

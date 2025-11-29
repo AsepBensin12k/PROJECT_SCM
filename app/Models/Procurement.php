@@ -5,17 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Stock extends Model
+class Procurement extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'material_id',
-        'product_id',
-        'quantity',
-        'type',     // in / out
-        'source',   // procurement, production, distribution
-        'notes'
+        'supplier_id',
+        'tanggal_datang',
+        'qty',
+        'total_harga',
+        'status'
     ];
 
     public function material()
@@ -23,8 +23,8 @@ class Stock extends Model
         return $this->belongsTo(Material::class);
     }
 
-    public function product()
+    public function supplier()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Supplier::class);
     }
 }

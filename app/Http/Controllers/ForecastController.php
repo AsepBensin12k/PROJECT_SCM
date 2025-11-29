@@ -2,116 +2,195 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Forecast;
-use App\Models\Material;
-use App\Models\Production;
 use Illuminate\Http\Request;
+use App\Models\{Forecast, Material};
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class ForecastController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
-    // Tampilkan semua forecast
     public function index()
     {
-        $forecasts = Forecast::with('material')->orderBy('period','desc')->paginate(20);
-        return view('forecasts.index', compact('forecasts'));
-    }
-
-    // form untuk membuat forecast baru (pilih material & periode & jumlah periode WMA)
-    public function create()
-    {
-        // Owner may run forecast; but allow Admin/Koordinator to view (tapi only Owner can save if you want)
-        $materials = Material::orderBy('name')->get();
-        return view('forecasts.create', compact('materials'));
-    }
-
-    // hitung WMA lalu simpan
-    public function store(Request $request)
-    {
-        // hanya Owner yang boleh menyimpan forecast (sesuai diskusi)
-        if (! auth()->user()->hasRole('Owner')) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'material_id' => 'required|exists:materials,id',
-            'period' => 'required|string', // format yyyy-mm
-            'periods' => 'nullable|integer|min:1|max:12',
-        ]);
-
-        $periods = $validated['periods'] ?? 3;
-        // default weights: lebih berat ke data terbaru
-        $weights = $this->generateWeights($periods);
-
-        // ambil produksi terakhir per period (bulan) untuk material
-        $productions = Production::selectRaw('YEAR(production_date) as y, MONTH(production_date) as m, SUM(quantity_used) as total_used')
-            ->where('material_id', $validated['material_id'])
-            ->groupBy('y','m')
-            ->orderByRaw('y desc, m desc')
-            ->limit($periods)
+        // 🔹 Ambil data pemakaian bahan baku 3 bulan terakhir (per bulan per material)
+        $historical = DB::table('production_materials')
+            ->join('productions', 'production_materials.production_id', '=', 'productions.id')
+            ->join('materials', 'production_materials.material_id', '=', 'materials.id')
+            ->select(
+                'materials.id',
+                'materials.name',
+                'materials.unit',
+                DB::raw('DATE_FORMAT(productions.production_date, "%Y-%m") as period'),
+                DB::raw('SUM(production_materials.quantity_used) as total_used')
+            )
+            ->where('productions.production_date', '>=', Carbon::now()->subMonths(3)->startOfMonth())
+            ->where('productions.status', 'selesai')
+            ->groupBy('materials.id', 'materials.name', 'materials.unit', 'period')
+            ->orderBy('period', 'asc')
+            ->orderBy('materials.name', 'asc')
             ->get();
 
-        // jika tidak cukup data, kita tetap bisa pakai yang ada (weights trimmed)
-        $values = $productions->pluck('total_used')->toArray();
-        if (count($values) === 0) {
-            return back()->withInput()->withErrors(['material_id' => 'Tidak ada data produksi untuk material ini.']);
+        // 🔹 Ambil hasil forecast yang sudah tersimpan
+        $forecasts = Forecast::with('material')->get();
+
+        // 🔹 Urutkan berdasarkan tingkat kebutuhan (needed DESC, forecast_value DESC)
+        $forecasts = $forecasts->map(function($f) {
+            $f->needed = max(0, $f->forecast_value - $f->material->stock);
+            return $f;
+        })->sortByDesc(function($f) {
+            // Primary sort: needed (yang paling butuh duluan)
+            // Secondary sort: forecast_value (kalau sama-sama butuh, yang forecast lebih besar duluan)
+            return [$f->needed, $f->forecast_value];
+        })->values();
+
+        // 🔹 Data untuk Line Chart (Tren per bahan baku)
+        $materials = $historical->groupBy('name');
+        $lineChartData = [];
+        $lineChartLabels = $historical->pluck('period')->unique()->sort()->values();
+
+        foreach ($materials as $materialName => $data) {
+            $usageByPeriod = $data->pluck('total_used', 'period')->toArray();
+            
+            $chartValues = [];
+            foreach ($lineChartLabels as $period) {
+                $chartValues[] = $usageByPeriod[$period] ?? 0;
+            }
+            
+            $lineChartData[] = [
+                'label' => $materialName,
+                'data' => $chartValues,
+            ];
         }
 
-        // align values with weights: values in desc order (most recent first)
-        // weights array is [w1, w2, ...] with w1 for most recent
-        $weights = array_slice($weights, 0, count($values));
+        $lineChartLabels = $lineChartLabels->map(function($period) {
+            return Carbon::createFromFormat('Y-m', $period)->translatedFormat('M Y');
+        });
 
-        // calculate weighted sum
-        $wma = 0.0;
-        $sumW = array_sum($weights);
-        foreach ($values as $i => $val) {
-            $wma += ($val * $weights[$i]);
+        // 🔹 Data untuk Bar Chart (Forecast vs Stok)
+        $barChartLabels = $forecasts->pluck('material.name');
+        $barChartForecast = $forecasts->pluck('forecast_value');
+        $barChartStock = $forecasts->map(fn($f) => $f->material->stock);
+
+        // 🔹 Data untuk Pie Chart (Proporsi Kebutuhan Pengadaan)
+        $pieChartData = [];
+        $pieChartLabels = [];
+        
+        foreach ($forecasts as $f) {
+            if ($f->needed > 0) {
+                $pieChartLabels[] = $f->material->name;
+                $pieChartData[] = round($f->needed, 2);
+            }
         }
-        if ($sumW > 0) {
-            $wma = $wma / $sumW;
-        }
 
-        // simpan ke forecasts
-        $forecast = Forecast::create([
-            'material_id' => $validated['material_id'],
-            'period' => $validated['period'],
-            'forecast_result' => round($wma, 2),
-        ]);
-
-        return redirect()->route('forecasts.index')->with('success', 'Forecast berhasil dibuat (WMA).');
+        return view('owner.forecast.index', compact(
+            'historical',
+            'forecasts',
+            'lineChartData',
+            'lineChartLabels',
+            'barChartLabels',
+            'barChartForecast',
+            'barChartStock',
+            'pieChartData',
+            'pieChartLabels'
+        ));
     }
 
-    // helper generate weights for n periods (decaying weights)
-    private function generateWeights(int $n): array
+    public function generate()
     {
-        // simplest: geometric weights: recent has largest weight
-        // e.g. for n=3 -> [0.5, 0.3, 0.2] normalized
-        $weights = [];
-        $base = 0.6; // relative decay (tweakable)
-        for ($i = 0; $i < $n; $i++) {
-            $weights[] = pow($base, $i);
-        }
-        // normalize to sum 1
-        $sum = array_sum($weights);
-        return array_map(fn($w) => $w / $sum, $weights);
-    }
+        try {
+            // 🔍 Cek dulu ada data produksi minimal 3 bulan atau tidak
+            $dataCheck = DB::table('production_materials')
+                ->join('productions', 'production_materials.production_id', '=', 'productions.id')
+                ->where('productions.production_date', '>=', Carbon::now()->subMonths(3)->startOfMonth())
+                ->where('productions.status', 'selesai')
+                ->count();
 
-    public function show(Forecast $forecast)
-    {
-        $forecast->load('material');
-        return view('forecasts.show', compact('forecast'));
-    }
+            if ($dataCheck == 0) {
+                return back()->with('error', 'Tidak ada data produksi 3 bulan terakhir. Total data: ' . $dataCheck);
+            }
 
-    public function destroy(Forecast $forecast)
-    {
-        if (! auth()->user()->hasRole('Owner')) {
-            abort(403);
+            // Cek berapa material yang punya data minimal 3 bulan
+            $materialCheck = DB::table('production_materials')
+                ->join('productions', 'production_materials.production_id', '=', 'productions.id')
+                ->join('materials', 'production_materials.material_id', '=', 'materials.id')
+                ->select(
+                    'materials.id',
+                    'materials.name',
+                    DB::raw('COUNT(DISTINCT DATE_FORMAT(productions.production_date, "%Y-%m")) as month_count')
+                )
+                ->where('productions.production_date', '>=', Carbon::now()->subMonths(3)->startOfMonth())
+                ->where('productions.status', 'selesai')
+                ->groupBy('materials.id', 'materials.name')
+                ->having('month_count', '>=', 3)
+                ->get();
+
+            if ($materialCheck->isEmpty()) {
+                return back()->with('error', 'Tidak ada material dengan data minimal 3 bulan berturut-turut.');
+            }
+
+            // Pastikan path python sesuai
+            $pythonPath = 'python'; // atau 'python3'
+            $scriptPath = base_path('app/Services/forecast_wma.py');
+            
+            // Cek apakah file python ada
+            if (!file_exists($scriptPath)) {
+                return back()->with('error', 'File Python tidak ditemukan di: ' . $scriptPath);
+            }
+
+            $escapedPath = escapeshellarg($scriptPath);
+            $command = "$pythonPath $escapedPath 2>&1";
+            $output = shell_exec($command);
+            
+            // 🔍 Debug: Log output python
+            Log::info('Python Output:', ['output' => $output]);
+            
+            // Cek apakah output kosong
+            if (empty($output)) {
+                return back()->with('error', 'Python tidak mengembalikan output. Cek log untuk detail.');
+            }
+
+            $results = json_decode($output, true);
+
+            // Cek JSON error
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return back()->with('error', 'JSON Error: ' . json_last_error_msg() . ' | Output: ' . substr($output, 0, 200));
+            }
+
+            // Cek apakah ada error dari Python
+            if (isset($results['error'])) {
+                $errorMsg = $results['error'];
+                $debugInfo = isset($results['debug_info']) ? json_encode($results['debug_info']) : '';
+                return back()->with('error', 'Python Error: ' . $errorMsg . ' | Debug: ' . $debugInfo);
+            }
+
+            if (!$results || count($results) == 0) {
+                return back()->with('error', 'Python berhasil jalan tapi tidak menghasilkan forecast.');
+            }
+
+            // Simpan hasil forecast
+            $saved = 0;
+            foreach ($results as $res) {
+                Forecast::updateOrCreate(
+                    [
+                        'material_id' => $res['material_id'],
+                        'period' => $res['period'],
+                    ],
+                    [
+                        'forecast_value' => $res['forecast_value'],
+                    ]
+                );
+                $saved++;
+            }
+
+            return redirect()->route('owner.forecasts')
+                ->with('success', "✅ Forecast berhasil! {$saved} bahan baku telah dihitung untuk periode Desember 2025.");
+            
+        } catch (\Exception $e) {
+            Log::error('Forecast Error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Error: ' . $e->getMessage());
         }
-        $forecast->delete();
-        return redirect()->route('forecasts.index')->with('success', 'Forecast berhasil dihapus.');
     }
 }

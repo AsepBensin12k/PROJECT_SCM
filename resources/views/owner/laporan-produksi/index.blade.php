@@ -81,7 +81,6 @@
                             <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Tanggal Produksi</th>
                             <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Produk</th>
                             <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Jumlah</th>
-                            <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Bahan Baku</th>
                             <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Operator</th>
                             <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider text-center">Aksi</th>
                         </tr>
@@ -94,7 +93,6 @@
                                 </td>
                                 <td class="px-6 py-4 font-medium">{{ $p->product->name }}</td>
                                 <td class="px-6 py-4">{{ $p->quantity_produced }}</td>
-                                <td class="px-6 py-4">{{ $p->material->name ?? '-' }}</td>
                                 <td class="px-6 py-4">{{ $p->operator ?? 'Bagian Produksi' }}</td>
                                 <td class="px-6 py-4 text-center">
                                     <a href="{{ route('owner.laporan.produksi.show', $p->id) }}"

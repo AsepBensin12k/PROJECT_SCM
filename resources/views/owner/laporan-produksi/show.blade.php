@@ -46,6 +46,7 @@
         @include('components.owner-sidebar')
 
         <main class="flex-1 p-8 ml-64">
+            <!-- Header -->
             <div class="mb-6 flex justify-between items-center">
                 <div>
                     <h2 class="text-3xl font-bold text-gray-800 flex items-center">
@@ -60,12 +61,14 @@
                 </a>
             </div>
 
+            <!-- Informasi Produksi -->
             <div class="bg-white rounded-xl shadow-md p-6 space-y-4">
                 <div class="grid md:grid-cols-2 gap-6">
                     <div>
                         <p class="text-sm text-gray-500">Tanggal Produksi</p>
                         <p class="font-semibold text-gray-800">
-                            {{ \Carbon\Carbon::parse($production->production_date)->format('d F Y') }}</p>
+                            {{ \Carbon\Carbon::parse($production->production_date)->format('d F Y') }}
+                        </p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Produk Dihasilkan</p>
@@ -76,17 +79,49 @@
                         <p class="font-semibold text-gray-800">{{ $production->quantity_produced }}</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500">Bahan Baku</p>
-                        <p class="font-semibold text-gray-800">{{ $production->material->name ?? '-' }}
-                            ({{ $production->quantity_used }})</p>
-                    </div>
-                    <div>
                         <p class="text-sm text-gray-500">Operator</p>
                         <p class="font-semibold text-gray-800">{{ $production->operator ?? 'Bagian Produksi' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Status</p>
+                        <p class="font-semibold text-gray-800 capitalize">
+                            {{ $production->status ?? 'selesai' }}
+                        </p>
                     </div>
                 </div>
             </div>
 
+            <!-- Bahan Baku yang Digunakan -->
+            <div class="bg-white rounded-xl shadow-md p-6 mt-8">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <i class="fas fa-boxes text-purple-600 mr-2"></i> Bahan Baku yang Digunakan
+                </h3>
+
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Nama Bahan</th>
+                            <th class="px-6 py-3 text-left font-semibold uppercase tracking-wider">Jumlah Digunakan</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @forelse ($production->materials as $m)
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-3">{{ $m->name }}</td>
+                                <td class="px-6 py-3">{{ $m->pivot->quantity_used }} {{ $m->unit }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="2" class="px-6 py-4 text-center text-gray-500">
+                                    Tidak ada data bahan baku tercatat.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Info -->
             <div class="mt-8 bg-purple-50 border-l-4 border-purple-600 p-4 rounded-lg">
                 <div class="flex items-start">
                     <i class="fas fa-info-circle text-purple-600 mr-2 mt-0.5"></i>
@@ -94,6 +129,7 @@
                         <p class="text-sm font-semibold text-purple-900">Informasi:</p>
                         <ul class="list-disc list-inside text-purple-700 text-sm space-y-1 mt-1">
                             <li>Data diambil dari sistem pencatatan produksi terkini.</li>
+                            <li>Daftar bahan baku di atas menunjukkan total penggunaan per produksi.</li>
                             <li>“Bagian Produksi” mengacu pada operator atau tim yang melaksanakan proses.</li>
                         </ul>
                     </div>

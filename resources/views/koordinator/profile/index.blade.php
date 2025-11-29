@@ -51,18 +51,6 @@
                             <span class="text-amber-100/80 text-[10px] font-medium leading-none">Koordinator</span>
                         </div>
                     </div>
-
-                    <!-- Logout Button -->
-                    <form method="POST" action="{{ route('logout') }}" class="m-0">
-                        @csrf
-                        <button type="submit"
-                            class="group bg-red-500/90 hover:bg-red-600 backdrop-blur-sm px-4 py-2 rounded-xl border border-red-400/50 hover:border-red-300 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-red-500/25 flex items-center space-x-2">
-                            <i
-                                class="fas fa-sign-out-alt text-white text-sm group-hover:translate-x-1 transition-transform duration-300"></i>
-                            <span class="text-white font-semibold text-sm">Logout</span>
-                        </button>
-                    </form>
-
                 </div>
             </div>
         </div>
