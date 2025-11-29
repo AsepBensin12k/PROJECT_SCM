@@ -19,7 +19,7 @@
                 <!-- Logo & Brand -->
                 <div class="flex items-center space-x-3">
                     <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm border border-white/30 shadow-lg">
-                        <i class="fas fa-industry text-white text-lg"></i>
+                        <i class="fas fa-user text-white text-lg"></i>
                     </div>
                     <div class="flex flex-col">
                         <a href="{{ route('koordinator.dashboard') }}"

@@ -37,12 +37,12 @@
 
             <!-- Bahan Baku -->
             <li>
-                <a href="{{ route('owner.materials') }}"
-                    class="flex items-center p-3 text-gray-700 {{ request()->routeIs('owner.materials*') ? 'bg-purple-50 border-l-4 border-purple-600' : 'hover:bg-gray-100' }} rounded-lg transition-all duration-200">
+                <a href="{{ route('owner.laporan.bahanbaku') }}"
+                    class="flex items-center p-3 text-gray-700 {{ request()->routeIs('owner.laporan.bahanbaku*') ? 'bg-purple-50 border-l-4 border-purple-600' : 'hover:bg-gray-100' }} rounded-lg transition-all duration-200">
                     <i
-                        class="fas fa-boxes mr-3 {{ request()->routeIs('owner.materials*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                        class="fas fa-boxes mr-3 {{ request()->routeIs('owner.laporan.bahanbaku*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
                     <span
-                        class="{{ request()->routeIs('owner.materials*') ? 'font-semibold text-purple-900' : '' }}">Bahan
+                        class="{{ request()->routeIs('owner.laporan.bahanbaku*') ? 'font-semibold text-purple-900' : '' }}">Bahan
                         Baku</span>
 
                 </a>
@@ -50,39 +50,40 @@
 
             <!-- Produk Jadi -->
             <li>
-                <a href="{{ route('owner.products') }}"
-                    class="flex items-center p-3 text-gray-700 {{ request()->routeIs('owner.products*') ? 'bg-purple-50 border-l-4 border-purple-600' : 'hover:bg-gray-100' }} rounded-lg transition-all duration-200">
+                <a href="{{ route('owner.laporan.produkjadi') }}"
+                    class="flex items-center p-3 text-gray-700 {{ request()->routeIs('owner.laporan.produkjadi*') ? 'bg-purple-50 border-l-4 border-purple-600' : 'hover:bg-gray-100' }} rounded-lg transition-all duration-200">
                     <i
-                        class="fas fa-cube mr-3 {{ request()->routeIs('owner.products*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                        class="fas fa-cube mr-3 {{ request()->routeIs('owner.laporan.produkjadi*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
                     <span
-                        class="{{ request()->routeIs('owner.products*') ? 'font-semibold text-purple-900' : '' }}">Produk
+                        class="{{ request()->routeIs('owner.laporan.produkjadi*') ? 'font-semibold text-purple-900' : '' }}">Produk
                         Jadi</span>
-                    
+
                 </a>
             </li>
 
             <!-- Produksi -->
             <li>
-                <a href="{{ route('owner.productions') }}"
-                    class="flex items-center p-3 text-gray-700 {{ request()->routeIs('owner.productions*') ? 'bg-purple-50 border-l-4 border-purple-600' : 'hover:bg-gray-100' }} rounded-lg transition-all duration-200">
+                <a href="{{ route('owner.laporan.produksi') }}"
+                    class="flex items-center p-3 text-gray-700 {{ request()->routeIs('owner.laporan.produksi*') ? 'bg-purple-50 border-l-4 border-purple-600' : 'hover:bg-gray-100' }} rounded-lg transition-all duration-200">
                     <i
-                        class="fas fa-industry mr-3 {{ request()->routeIs('owner.productions*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                        class="fas fa-industry mr-3 {{ request()->routeIs('owner.laporan.produksi*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
                     <span
-                        class="{{ request()->routeIs('owner.productions*') ? 'font-semibold text-purple-900' : '' }}">Produksi</span>
-
+                        class="{{ request()->routeIs('owner.laporan.produksi*') ? 'font-semibold text-purple-900' : '' }}">Produksi</span>
                 </a>
             </li>
+
 
             <!-- Distribusi -->
             <li>
-                <a href="{{ route('owner.distributions') }}"
-                    class="flex items-center p-3 text-gray-700 {{ request()->routeIs('owner.distributions*') ? 'bg-purple-50 border-l-4 border-purple-600' : 'hover:bg-gray-100' }} rounded-lg transition-all duration-200">
+                <a href="{{ route('owner.laporan.distribusi') }}"
+                    class="flex items-center p-3 text-gray-700 {{ request()->routeIs('owner.laporan.distribusi*') ? 'bg-purple-50 border-l-4 border-purple-600' : 'hover:bg-gray-100' }} rounded-lg transition-all duration-200">
                     <i
-                        class="fas fa-truck mr-3 {{ request()->routeIs('owner.distributions*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
+                        class="fas fa-truck text-lg mr-3 {{ request()->routeIs('owner.laporan.distribusi*') ? 'text-purple-600' : 'text-gray-500' }}"></i>
                     <span
-                        class="{{ request()->routeIs('owner.distributions*') ? 'font-semibold text-purple-900' : '' }}">Distribusi</span>
+                        class="{{ request()->routeIs('owner.laporan.distribusi*') ? 'font-semibold text-purple-900' : '' }}">Distribusi</span>
                 </a>
             </li>
+
 
             <!-- Forecasting -->
             <li>
@@ -117,7 +118,7 @@
                 </a>
             </li>
 
-            {{-- <!-- Logout -->
+            <!-- Logout -->
             <li>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -127,7 +128,7 @@
                         <span class="text-red-600">Logout</span>
                     </button>
                 </form>
-            </li> --}}
+            </li>
         </ul>
 
         <!-- Info Box -->

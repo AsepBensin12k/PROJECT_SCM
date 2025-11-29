@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +9,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body class="bg-gray-100">
     <!-- Navigation -->
-    <nav class="bg-gradient-to-r from-amber-500 to-orange-500 shadow-xl sticky top-0 z-50 backdrop-blur-sm bg-white/95 border-b border-amber-200">
+    <nav
+        class="bg-gradient-to-r from-amber-500 to-orange-500 shadow-xl sticky top-0 z-50 backdrop-blur-sm bg-white/95 border-b border-amber-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo & Brand -->
@@ -27,12 +30,14 @@
                 <!-- User Info & Actions -->
                 <div class="flex items-center space-x-4">
                     <!-- User Profile -->
-                    <div class="flex items-center space-x-3 bg-white/20 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/30">
+                    <div
+                        class="flex items-center space-x-3 bg-white/20 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/30">
                         <div class="bg-white/30 p-1.5 rounded-full">
                             <i class="fas fa-user text-white text-sm"></i>
                         </div>
                         <div class="flex flex-col">
-                            <span class="text-white text-sm font-semibold leading-none">Welcome, {{ Auth::user()->name }}</span>
+                            <span class="text-white text-sm font-semibold leading-none">Welcome,
+                                {{ Auth::user()->name }}</span>
                             <span class="text-amber-100 text-xs">Online</span>
                         </div>
                     </div>
@@ -117,74 +122,87 @@
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Bahan Baku Menipis</h3>
                     <div class="space-y-3">
                         @forelse($lowStockMaterials as $material)
-                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                            <div>
-                                <h4 class="font-medium text-gray-800">{{ $material->name }}</h4>
-                                <p class="text-sm text-gray-600">Stok: {{ $material->stock }} {{ $material->unit }}</p>
+                            <div
+                                class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                <div>
+                                    <h4 class="font-medium text-gray-800">{{ $material->name }}</h4>
+                                    <p class="text-sm text-gray-600">Stok: {{ $material->stock }} {{ $material->unit }}
+                                    </p>
+                                </div>
+                                <span class="px-2 py-1 bg-yellow-500 text-white text-xs rounded-full">Menipis</span>
                             </div>
-                            <span class="px-2 py-1 bg-yellow-500 text-white text-xs rounded-full">Menipis</span>
-                        </div>
                         @empty
-                        <p class="text-gray-500 text-center py-4">Tidak ada bahan baku menipis</p>
+                            <p class="text-gray-500 text-center py-4">Tidak ada bahan baku menipis</p>
                         @endforelse
                     </div>
                 </div>
 
-              <!-- Jadwal Produksi -->
+                <!-- Jadwal Produksi -->
                 <div class="bg-white rounded-xl shadow-md p-6 lg:col-span-2">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Jadwal Produksi Minggu Ini</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead>
                                 <tr class="bg-gray-50">
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produk</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bahan Baku</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity Produksi</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operator</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Efisiensi</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produk
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bahan
+                                        Baku</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity
+                                        Produksi</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operator
+                                    </th>
+                                    {{-- <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Efisiensi</th> --}}
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 @forelse($productionSchedule as $production)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 text-sm text-gray-800">
-                                        <div class="font-medium">{{ $production->product->name }}</div>
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-gray-800">
-                                        {{ $production->material->name }}
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-gray-800">
-                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                                            {{ $production->quantity_produced }} pcs
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-gray-800">
-                                        {{ \Carbon\Carbon::parse($production->production_date)->format('d M Y') }}
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-gray-800">
-                                        {{ $production->user->name }}
-                                    </td>
-                                    <td class="px-4 py-3 text-sm">
-                                        @php
-                                            $efficiency = ($production->quantity_produced / $production->quantity_used) * 100;
-                                        @endphp
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full
-                                            {{ $efficiency >= 80 ? 'bg-green-100 text-green-800' :
-                                            ($efficiency >= 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                            {{ number_format($efficiency, 1) }}%
-                                        </span>
-                                    </td>
-                                </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            <div class="font-medium">{{ $production->product->name }}</div>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            {{ $production->material->name }}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                                                {{ $production->quantity_produced }} pcs
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">
+                                            {{ \Carbon\Carbon::parse($production->production_date)->format('d M Y') }}
+                                        </td>
+                                        <td class="font-medium px-4 py-3 text-sm text-gray-800">
+                                            Bagian Produksi
+                                        </td>
+                                        {{-- <td class="px-4 py-3 text-sm">
+                                            @php
+                                                $efficiency =
+                                                    ($production->quantity_produced / $production->quantity_used) * 100;
+                                            @endphp
+                                            <span
+                                                class="px-2 py-1 text-xs font-medium rounded-full
+                                            {{ $efficiency >= 80
+                                                ? 'bg-green-100 text-green-800'
+                                                : ($efficiency >= 60
+                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                    : 'bg-red-100 text-red-800') }}">
+                                                {{ number_format($efficiency, 1) }}%
+                                            </span>
+                                        </td> --}}
+                                    </tr>
                                 @empty
-                                <tr>
-                                    <td colspan="6" class="px-4 py-4 text-center text-gray-500">
-                                        <div class="flex flex-col items-center justify-center py-4">
-                                            <i class="fas fa-calendar-alt text-3xl text-gray-300 mb-2"></i>
-                                            <p>Tidak ada jadwal produksi minggu ini</p>
-                                        </div>
-                                    </td>
-                                </tr>
+                                    <tr>
+                                        <td colspan="6" class="px-4 py-4 text-center text-gray-500">
+                                            <div class="flex flex-col items-center justify-center py-4">
+                                                <i class="fas fa-calendar-alt text-3xl text-gray-300 mb-2"></i>
+                                                <p>Tidak ada jadwal produksi minggu ini</p>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -197,8 +215,7 @@
     <script>
         // Chart Stok Bahan Baku
         const materialStockChart = new Chart(
-            document.getElementById('materialStockChart'),
-            {
+            document.getElementById('materialStockChart'), {
                 type: 'bar',
                 data: {
                     labels: @json($materials->pluck('name')),
@@ -239,4 +256,5 @@
         );
     </script>
 </body>
+
 </html>

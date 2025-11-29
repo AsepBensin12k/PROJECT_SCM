@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-     public function up(): void
+    public function up(): void
     {
         Schema::create('distributions', function (Blueprint $table) {
             $table->id();
@@ -17,7 +14,9 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->string('destination');
             $table->integer('quantity');
-            $table->enum('status', ['diproses', 'dikirim', 'dibatalkan'])->default('diproses');
+            // ✅ Tambahkan enum 'selesai' supaya bisa dipakai tanpa error
+            $table->enum('status', ['diproses', 'dikirim', 'selesai', 'dibatalkan'])->default('diproses');
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }

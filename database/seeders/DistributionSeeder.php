@@ -27,6 +27,14 @@ class DistributionSeeder extends Seeder
             'product_id' => $produk->id,
             'destination' => 'Reseller Surabaya',
             'quantity' => 15,
+            'status' => 'selesai'
+        ]);
+
+        Distribution::create([
+            'user_id' => $owner->id,
+            'product_id' => $produk->id,
+            'destination' => 'Toko Probolinggo',
+            'quantity' => 8,
             'status' => 'diproses'
         ]);
     }

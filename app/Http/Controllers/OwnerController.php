@@ -10,6 +10,8 @@ use App\Models\Stock;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 class OwnerController extends Controller
@@ -101,6 +103,75 @@ class OwnerController extends Controller
             'totalMaterialValue',
             'totalProductValue',
             'avgEfficiency'
+        ));
+    }
+
+    public function laporanBahanBaku()
+    {
+        $materials = Material::with('supplier')->orderBy('stock', 'desc')->get();
+
+        // Statistik utama
+        $totalMaterials = $materials->count();
+        $totalStock = $materials->sum('stock');
+        $lowStock = $materials->where('stock', '<', 50)->count();
+        $outOfStock = $materials->where('stock', '=', 0)->count();
+
+        // Data chart top 5 bahan baku
+        $topMaterials = $materials->sortByDesc('stock')->take(5);
+        $chartLabels = $topMaterials->pluck('name');
+        $chartData = $topMaterials->pluck('stock');
+
+        // Kirim ke view
+        return view('owner.laporan-bahan-baku.index', compact(
+            'materials',
+            'totalMaterials',
+            'totalStock',
+            'lowStock',
+            'outOfStock',
+            'chartLabels',
+            'chartData'
+        ));
+    }
+
+    public function laporanProdukJadi()
+    {
+        $products = Product::orderBy('stock', 'desc')->get();
+        $totalProducts = $products->count();
+        $totalStock = $products->sum('stock');
+        $lowStock = $products->where('stock', '<', 20)->count();
+        $outOfStock = $products->where('stock', '=', 0)->count();
+        $topProducts = $products->sortByDesc('stock')->take(5);
+        $chartLabels = $topProducts->pluck('name');
+        $chartData = $topProducts->pluck('stock');
+
+        return view('owner.laporan-stok-barang-jadi.index', compact(
+            'products',
+            'totalProducts',
+            'totalStock',
+            'lowStock',
+            'outOfStock',
+            'chartLabels',
+            'chartData'
+        ));
+    }
+
+    public function detailProdukJadi($id)
+    {
+        $product = Product::with(['productions.material', 'productions.user'])->findOrFail($id);
+        $productions = $product->productions()->orderBy('production_date', 'desc')->get();
+        $totalProduced = $productions->sum('quantity_produced');
+        $totalUsedMaterial = $productions->sum('quantity_used');
+
+        $chartData = $productions
+            ->groupBy(fn($p) => Carbon::parse($p->production_date)->format('M Y'))
+            ->map(fn($items) => $items->sum('quantity_produced'));
+
+        return view('owner.laporan-stok-barang-jadi.show', compact(
+            'product',
+            'productions',
+            'totalProduced',
+            'totalUsedMaterial',
+            'chartData'
         ));
     }
 
@@ -246,4 +317,136 @@ class OwnerController extends Controller
                 ->with('error', 'Gagal menghapus supplier: ' . $e->getMessage());
         }
     }
+    public function laporanProduksi()
+    {
+        $productions = Production::with(['product', 'material'])
+            ->orderBy('production_date', 'desc')
+            ->get();
+
+        $totalProductions = $productions->count();
+        $totalQuantity = $productions->sum('quantity_produced');
+        $totalMaterialsUsed = $productions->sum('quantity_used');
+
+        $chartData = $productions
+            ->groupBy(fn($p) => Carbon::parse($p->production_date)->format('M Y'))
+            ->map(fn($items) => $items->sum('quantity_produced'));
+
+        return view('owner.laporan-produksi.index', compact(
+            'productions',
+            'totalProductions',
+            'totalQuantity',
+            'totalMaterialsUsed',
+            'chartData'
+        ));
+    }
+
+    public function detailProduksi($id)
+    {
+        $production = Production::with(['product', 'material'])->findOrFail($id);
+
+        return view('owner.laporan-produksi.show', compact('production'));
+    }
+
+    public function laporanDistribusi()
+    {
+        $distributions = Distribution::with(['product', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Total semua distribusi
+        $totalDistributions = $distributions->count();
+
+        // ✅ Total barang dikirim (hanya yg statusnya "dikirim")
+        $totalQuantitySent = $distributions
+            ->where('status', 'dikirim')
+            ->sum('quantity');
+
+        // ✅ Jumlah distribusi yang sedang diproses (jumlah record, bukan quantity)
+        $countInProgress = $distributions
+            ->where('status', 'diproses')
+            ->count();
+
+        // ✅ Jumlah distribusi yang sudah selesai
+        $countCompleted = $distributions
+            ->where('status', 'selesai')
+            ->count();
+
+        // ✅ Untuk data chart (total quantity per bulan)
+        $chartData = $distributions
+            ->groupBy(fn($d) => Carbon::parse($d->created_at)->format('M Y'))
+            ->map(fn($items) => $items->sum('quantity'));
+
+        return view('owner.laporan-distribusi.index', compact(
+            'distributions',
+            'totalDistributions',
+            'totalQuantitySent',
+            'countInProgress',
+            'countCompleted',
+            'chartData'
+        ));
+    }
+
+    public function detailDistribusi($id)
+    {
+        $distribution = Distribution::with(['product', 'user'])->findOrFail($id);
+
+        return view('owner.laporan-distribusi.show', compact('distribution'));
+    }
+
+    public function profile()
+    {
+        $user = Auth::user();
+        return view('owner.profile.index', compact('user'));
+    }
+
+    /**
+     * Tampilkan form edit profil Owner
+     */
+    public function editProfile()
+    {
+        $user = Auth::user();
+        return view('owner.profile.edit', compact('user'));
+    }
+
+    /**
+     * Update data profil Owner
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('owner.profile')->with('success', 'Profil berhasil diperbarui!');
+    }
+
+    /**
+     * Ganti password Owner
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Password lama salah']);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return back()->with('success', 'Password berhasil diperbarui!');
+    }
 }
+

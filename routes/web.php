@@ -107,29 +107,27 @@ Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () 
     Route::put('/suppliers/{id}', [OwnerController::class, 'updateSupplier'])->name('suppliers.update');
     Route::patch('/suppliers/{id}/toggle', [OwnerController::class, 'toggleSupplierStatus'])->name('suppliers.toggle');
     Route::delete('/suppliers/{id}', [OwnerController::class, 'destroySupplier'])->name('suppliers.destroy');
-    // ==========================================
-    // Material Management Routes - VIEW ONLY
-    // ==========================================
-    Route::get('/materials', [OwnerController::class, 'materials'])->name('materials');
-    Route::get('/materials/{id}', [OwnerController::class, 'showMaterial'])->name('materials.show');
 
-    // ==========================================
-    // Product Management Routes - VIEW ONLY
-    // ==========================================
-    Route::get('/products', [OwnerController::class, 'products'])->name('products');
-    Route::get('/products/{id}', [OwnerController::class, 'showProduct'])->name('products.show');
 
-    // ==========================================
-    // Production Routes - VIEW ONLY
-    // ==========================================
-    Route::get('/productions', [OwnerController::class, 'productions'])->name('productions');
-    Route::get('/productions/{id}', [OwnerController::class, 'showProduction'])->name('productions.show');
+    Route::get('/laporan-bahan-baku', [OwnerController::class, 'laporanBahanBaku'])->name('laporan.bahanbaku');
 
-    // ==========================================
-    // Distribution Routes - VIEW ONLY
-    // ==========================================
-    Route::get('/distributions', [OwnerController::class, 'distributions'])->name('distributions');
-    Route::get('/distributions/{id}', [OwnerController::class, 'showDistribution'])->name('distributions.show');
+// 🧱 LAPORAN PRODUK JADI
+    Route::get('/laporan-stok-barang-jadi', [OwnerController::class, 'laporanProdukJadi'])->name('laporan.produkjadi');
+    Route::get('/laporan-stok-barang-jadi/{id}', [OwnerController::class, 'detailProdukJadi'])->name('laporan.produkjadi.show');
+
+    // // ==========================================
+    // // Product Management Routes - VIEW ONLY
+    // // ==========================================
+    // Route::get('/products', [OwnerController::class, 'products'])->name('products');
+    // Route::get('/products/{id}', [OwnerController::class, 'showProduct'])->name('products.show');
+
+  // 🏭 LAPORAN PRODUKSI
+    Route::get('/laporan-produksi', [OwnerController::class, 'laporanProduksi'])->name('laporan.produksi');
+    Route::get('/laporan-produksi/{id}', [OwnerController::class, 'detailProduksi'])->name('laporan.produksi.show');
+
+    // 🚚 LAPORAN DISTRIBUSI
+    Route::get('/laporan-distribusi', [OwnerController::class, 'laporanDistribusi'])->name('laporan.distribusi');
+    Route::get('/laporan-distribusi/{id}', [OwnerController::class, 'detailDistribusi'])->name('laporan.distribusi.show');
 
     // ==========================================
     // Forecasting Routes - VIEW ONLY
@@ -142,11 +140,12 @@ Route::middleware(['auth'])->prefix('owner')->name('owner.')->group(function () 
     Route::get('/reports', [OwnerController::class, 'reports'])->name('reports');
     Route::get('/reports/export', [OwnerController::class, 'exportReport'])->name('reports.export');
 
-    // ==========================================
-    // Profile Routes
-    // ==========================================
+    // Profile Owner
     Route::get('/profile', [OwnerController::class, 'profile'])->name('profile');
-    Route::put('/profile', [OwnerController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/profile/edit', [OwnerController::class, 'editProfile'])->name('profile.edit');
+    Route::put('/profile/update', [OwnerController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile/password', [OwnerController::class, 'updatePassword'])->name('profile.password');
+
 });
 
 

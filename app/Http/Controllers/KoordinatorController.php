@@ -23,7 +23,7 @@ class KoordinatorController extends Controller
         // Data untuk dashboard
         $materials = Material::with('supplier')->get();
         $products = Product::with('stocks')->get();
-        $lowStockMaterials = Material::where('stock', '<', 50)->get();
+        $lowStockMaterials = Material::where('stock', '<', 30)->get();
         $outOfStockMaterials = Material::where('stock', 0)->get();
 
         // Jadwal produksi minggu ini - PERBAIKAN
@@ -313,11 +313,24 @@ class KoordinatorController extends Controller
         }
 
         $distributions = Distribution::with(['product', 'user'])
-            ->orderBy('created_at', 'desc') // Ganti distribution_date dengan created_at
+            ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('koordinator.manajemendistribusi.index', compact('distributions'));
+        // Statistik
+        $totalDistributions = $distributions->count();
+        $totalQuantitySent = $distributions->whereIn('status', ['dikirim', 'selesai'])->sum('quantity');
+        $inProgressCount = $distributions->where('status', 'diproses')->count();
+        $completedCount = $distributions->where('status', 'selesai')->count();
+
+        return view('koordinator.manajemendistribusi.index', compact(
+            'distributions',
+            'totalDistributions',
+            'totalQuantitySent',
+            'inProgressCount',
+            'completedCount'
+        ));
     }
+
 
     // DISTRIBUTION - CREATE
     public function createDistribution()

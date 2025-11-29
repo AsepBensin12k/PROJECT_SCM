@@ -96,7 +96,7 @@
                         <div class="ml-4">
                             <h3 class="text-sm font-medium text-gray-600">Total Produksi</h3>
                             <p class="text-2xl font-bold text-gray-800">{{ $totalProductions }}</p>
-                            <p class="text-xs text-gray-500 mt-1">Efisiensi: {{ number_format($avgEfficiency, 1) }}%</p>
+                            {{-- <p class="text-xs text-gray-500 mt-1">Efisiensi: {{ number_format($avgEfficiency, 1) }}%</p> --}}
                         </div>
                     </div>
                 </div>
@@ -279,8 +279,8 @@
                                     Diproduksi</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operator
                                 </th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Efisiensi
-                                </th>
+                                {{-- <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Efisiensi
+                                </th> --}}
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -304,10 +304,10 @@
                                             {{ $production->quantity_produced }} pcs
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-sm text-gray-600">
-                                        {{ $production->user->name }}
+                                    <td class=" font-medium px-4 py-3 text-sm text-gray-600">
+                                        Bagian Produksi
                                     </td>
-                                    <td class="px-4 py-3 text-sm">
+                                    {{-- <td class="px-4 py-3 text-sm">
                                         @php
                                             $efficiency =
                                                 ($production->quantity_produced / $production->quantity_used) * 100;
@@ -321,7 +321,7 @@
                                                     : 'bg-red-100 text-red-800') }}">
                                             {{ number_format($efficiency, 1) }}%
                                         </span>
-                                    </td>
+                                    </td> --}}
                                 </tr>
                             @empty
                                 <tr>
