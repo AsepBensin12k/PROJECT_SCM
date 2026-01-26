@@ -1,9 +1,3 @@
-<p align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/id/b/b2/Gedung_Teknik_Unej.jpg" width="180" alt="Universitas Jember">
-  <br><br>
-  <img src="https://via.placeholder.com/180x180/228B22/FFFFFF?text=ROJEMBER+Logo" width="180" alt="ROJEMBER Logo">
-</p>
-
 <h1 align="center">PROJECT_SCM</h1>
 
 <p align="center">
@@ -17,15 +11,6 @@
   <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
   <img src="https://img.shields.io/badge/Status-Akademik-blue?style=for-the-badge" alt="Status">
   <img src="https://img.shields.io/badge/Universitas%20Jember-2025-green?style=for-the-badge" alt="Tahun">
-</p>
-
-<p align="center">
-  <strong>LAPORAN UJIAN TENGAH SEMESTER</strong><br>
-  MATA KULIAH: SUPPLY CHAIN MANAGEMENT<br>
-  PROGRAM STUDI SISTEM INFORMASI<br>
-  FAKULTAS ILMU KOMPUTER<br>
-  UNIVERSITAS JEMBER<br>
-  2025
 </p>
 
 ## Dosen Pengampu
